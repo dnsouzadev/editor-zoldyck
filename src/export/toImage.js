@@ -27,7 +27,7 @@ export async function exportToImage(code, algorithmName = 'algoritmo') {
   `;
   header.innerHTML = `
     <div style="font-size: 18px; font-weight: bold; color: #569CD6; margin-bottom: 8px;">
-      📝 Editor Portugol Web
+      Editor Zoldyck
     </div>
     <div style="font-size: 12px; color: #858585;">
       ${algorithmName} • ${new Date().toLocaleDateString('pt-BR')}

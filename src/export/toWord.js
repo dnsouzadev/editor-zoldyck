@@ -13,7 +13,7 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: 'Editor Portugol Web - Código Fonte',
+                  text: 'Editor Zoldyck - Código Fonte',
                   bold: true,
                   size: 32, // 16pt
                   color: '0066CC',
@@ -44,6 +44,15 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
                   })}`,
                   size: 20, // 10pt
                   color: '666666',
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: 'Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1',
+                  size: 18,
+                  color: '999999',
                 }),
               ],
               spacing: {

@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
+import { Code2 } from 'lucide-react';
 import Editor from './components/Editor/Editor';
 import Console from './components/Console/Console';
 import Toolbar from './components/Toolbar/Toolbar';
 import ExportMenu from './components/ExportMenu/ExportMenu';
+import { ThemeProvider } from './components/ThemeProvider';
 import { runPortugol } from './interpreter';
 import { exportToImage } from './export/toImage';
 import { exportToPDF } from './export/toPDF';
 import { exportToWord } from './export/toWord';
 import { getExample, getExamplesList } from './examples/examples';
-import './App.css';
 
 const DEFAULT_CODE = `algoritmo "Meu Primeiro Programa"
 var
@@ -17,10 +18,10 @@ inicio
    escreva("Digite seu nome: ")
    leia(nome)
    escreval("Olá, ", nome, "!")
-   escreval("Bem-vindo ao Editor Portugol Web!")
+   escreval("Bem-vindo ao Editor Zoldyck!")
 fimalgoritmo`;
 
-function App() {
+function AppContent() {
   const [code, setCode] = useState(() => {
     const saved = localStorage.getItem('portugol-code');
     return saved || DEFAULT_CODE;
@@ -64,7 +65,7 @@ function App() {
     const result = await runPortugol(code, onWrite, onRead);
 
     if (!result.success) {
-      consoleRef.current?.writeError('❌ Erro: ' + result.error);
+      consoleRef.current?.writeError('Erro: ' + result.error);
     }
 
     setIsRunning(false);
@@ -95,12 +96,12 @@ function App() {
       }
 
       if (result.success) {
-        consoleRef.current?.write('✅ Exportado com sucesso como ' + format.toUpperCase() + '!');
+        consoleRef.current?.write('Exportado com sucesso como ' + format.toUpperCase() + '!');
       } else {
-        consoleRef.current?.writeError('❌ Erro ao exportar: ' + result.error);
+        consoleRef.current?.writeError('Erro ao exportar: ' + result.error);
       }
     } catch (error) {
-      consoleRef.current?.writeError('❌ Erro ao exportar: ' + error.message);
+      consoleRef.current?.writeError('Erro ao exportar: ' + error.message);
     }
   };
 
@@ -117,16 +118,24 @@ function App() {
       if (index >= 0 && index < examples.length) {
         const exampleCode = getExample(examples[index].id);
         setCode(exampleCode);
-        consoleRef.current?.write('📄 Exemplo "' + examples[index].name + '" carregado!');
+        consoleRef.current?.write('Exemplo "' + examples[index].name + '" carregado!');
       }
     }
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>📝 Editor Portugol Web</h1>
-        <p>Editor e interpretador online de Portugol com exportação</p>
+    <div className="flex flex-col h-screen bg-background">
+      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <Code2 className="w-8 h-8" />
+          <div>
+            <h1 className="text-2xl font-bold">Editor Zoldyck</h1>
+            <p className="text-sm opacity-90">Interpretador Portugol Online</p>
+          </div>
+        </div>
+        <p className="text-xs mt-2 opacity-75">
+          Desenvolvido por Daniel Souza - Aluno do curso de Sistemas de Informação FeMASS/2026.1
+        </p>
       </header>
 
       <Toolbar
@@ -137,17 +146,21 @@ function App() {
         isRunning={isRunning}
       />
 
-      <div className="app-content">
-        <div className="editor-panel">
-          <div className="panel-header">Editor de Código</div>
-          <div className="panel-body">
-            <Editor code={code} onChange={setCode} theme="dark" />
+      <div className="flex-1 grid grid-cols-2 overflow-hidden">
+        <div className="flex flex-col border-r border-border">
+          <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border">
+            Editor de Código
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <Editor code={code} onChange={setCode} />
           </div>
         </div>
 
-        <div className="console-panel">
-          <div className="panel-header">Console de Saída</div>
-          <div className="panel-body">
+        <div className="flex flex-col">
+          <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border">
+            Console de Saída
+          </div>
+          <div className="flex-1 overflow-hidden">
             <Console ref={consoleRef} />
           </div>
         </div>
@@ -160,6 +173,14 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

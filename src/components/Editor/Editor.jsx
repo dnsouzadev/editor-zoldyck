@@ -1,16 +1,16 @@
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { useEffect, useRef } from 'react';
+import { useTheme } from '../ThemeProvider';
 
-export default function Editor({ code, onChange, theme = 'vs-dark' }) {
+export default function Editor({ code, onChange }) {
   const editorRef = useRef(null);
+  const { theme } = useTheme();
 
   function handleEditorDidMount(editor, monaco) {
     editorRef.current = editor;
 
-    // Definir linguagem customizada para Portugol
     monaco.languages.register({ id: 'portugol' });
 
-    // Definir syntax highlighting
     monaco.languages.setMonarchTokensProvider('portugol', {
       keywords: [
         'algoritmo', 'var', 'inicio', 'fim', 'fimalgoritmo',
@@ -34,20 +34,13 @@ export default function Editor({ code, onChange, theme = 'vs-dark' }) {
 
       tokenizer: {
         root: [
-          // Comentários
           [/\/\/.*$/, 'comment'],
-          
-          // Strings
           [/"([^"\\]|\\.)*$/, 'string.invalid'],
           [/'([^'\\]|\\.)*$/, 'string.invalid'],
           [/"/, 'string', '@string_double'],
           [/'/, 'string', '@string_single'],
-          
-          // Números
           [/\d+\.\d+/, 'number.float'],
           [/\d+/, 'number'],
-          
-          // Identificadores e palavras-chave
           [/[a-záàâãéêíóôõúüçA-ZÁÀÂÃÉÊÍÓÔÕÚÜÇ_]\w*/, {
             cases: {
               '@keywords': 'keyword',
@@ -55,20 +48,14 @@ export default function Editor({ code, onChange, theme = 'vs-dark' }) {
               '@default': 'identifier'
             }
           }],
-          
-          // Operadores
           [/<-|<>|>=|<=|\.\./, 'operator'],
           [/[+\-*\/^%=<>]/, 'operator'],
-          
-          // Delimitadores
           [/[()[\],;:]/, 'delimiter'],
         ],
-
         string_double: [
           [/[^\\"]+/, 'string'],
           [/"/, 'string', '@pop']
         ],
-
         string_single: [
           [/[^\\']+/, 'string'],
           [/'/, 'string', '@pop']
@@ -76,7 +63,6 @@ export default function Editor({ code, onChange, theme = 'vs-dark' }) {
       },
     });
 
-    // Definir tema customizado
     monaco.editor.defineTheme('portugol-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -91,8 +77,28 @@ export default function Editor({ code, onChange, theme = 'vs-dark' }) {
       colors: {}
     });
 
-    monaco.editor.setTheme('portugol-dark');
+    monaco.editor.defineTheme('portugol-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: '0000FF', fontStyle: 'bold' },
+        { token: 'keyword.builtin', foreground: '795E26' },
+        { token: 'string', foreground: 'A31515' },
+        { token: 'number', foreground: '098658' },
+        { token: 'comment', foreground: '008000', fontStyle: 'italic' },
+        { token: 'operator', foreground: '000000' },
+      ],
+      colors: {}
+    });
   }
+
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        theme: theme === 'dark' ? 'portugol-dark' : 'portugol-light'
+      });
+    }
+  }, [theme]);
 
   return (
     <MonacoEditor
@@ -100,7 +106,7 @@ export default function Editor({ code, onChange, theme = 'vs-dark' }) {
       defaultLanguage="portugol"
       value={code}
       onChange={onChange}
-      theme={theme === 'dark' ? 'portugol-dark' : 'vs'}
+      theme={theme === 'dark' ? 'portugol-dark' : 'portugol-light'}
       onMount={handleEditorDidMount}
       options={{
         minimap: { enabled: false },

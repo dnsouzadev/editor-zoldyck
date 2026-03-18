@@ -1,4 +1,6 @@
-import './Toolbar.css';
+import { Play, Trash2, Download, FileCode, Moon, Sun } from 'lucide-react';
+import { Button } from '../ui/button';
+import { useTheme } from '../ThemeProvider';
 
 export default function Toolbar({ 
   onRun, 
@@ -7,39 +9,54 @@ export default function Toolbar({
   onLoadExample, 
   isRunning 
 }) {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <div className="toolbar">
-      <div className="toolbar-left">
-        <button 
-          className="toolbar-btn toolbar-btn-primary" 
+    <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+      <div className="flex items-center gap-2">
+        <Button 
           onClick={onRun}
           disabled={isRunning}
+          size="default"
         >
-          {isRunning ? '⏸ Executando...' : '▶ Executar (Ctrl+Enter)'}
-        </button>
+          <Play className="w-4 h-4" />
+          {isRunning ? 'Executando...' : 'Executar'}
+        </Button>
         
-        <button 
-          className="toolbar-btn" 
+        <Button 
+          variant="outline"
           onClick={onClear}
         >
-          🗑 Limpar Console
-        </button>
+          <Trash2 className="w-4 h-4" />
+          Limpar
+        </Button>
         
-        <button 
-          className="toolbar-btn" 
+        <Button 
+          variant="outline"
           onClick={onLoadExample}
         >
-          📄 Exemplos
-        </button>
+          <FileCode className="w-4 h-4" />
+          Exemplos
+        </Button>
       </div>
       
-      <div className="toolbar-right">
-        <button 
-          className="toolbar-btn toolbar-btn-export" 
+      <div className="flex items-center gap-2">
+        <Button 
+          variant="secondary"
           onClick={onExport}
         >
-          📤 Exportar
-        </button>
+          <Download className="w-4 h-4" />
+          Exportar
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Tema Claro' : 'Tema Escuro'}
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </Button>
       </div>
     </div>
   );

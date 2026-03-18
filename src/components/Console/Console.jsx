@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import './Console.css';
+import { cn } from '../../lib/utils';
 
 const Console = forwardRef(({ onInput }, ref) => {
   const [output, setOutput] = useState([]);
@@ -40,37 +40,39 @@ const Console = forwardRef(({ onInput }, ref) => {
     e.preventDefault();
     const value = inputRef.current.value;
     
-    // Adicionar input ao console
     setOutput(prev => [...prev, { type: 'input', text: `${inputPrompt}${value}` }]);
     
-    // Resolver a promise
     if (inputResolverRef.current) {
       inputResolverRef.current(value);
       inputResolverRef.current = null;
     }
     
-    // Resetar estado
     setIsWaitingInput(false);
     setInputPrompt('');
     inputRef.current.value = '';
   };
 
   return (
-    <div className="console">
-      <div className="console-output">
+    <div className="h-full bg-muted/30 p-3 overflow-y-auto font-mono text-sm">
+      <div className="flex flex-col gap-0.5">
         {output.map((item, index) => (
-          <div key={index} className={`console-line console-${item.type}`}>
+          <div key={index} className={cn(
+            "leading-relaxed",
+            item.type === 'error' && "text-destructive font-semibold",
+            item.type === 'input' && "text-primary",
+            item.type === 'output' && "text-foreground"
+          )}>
             {item.text}
             {item.newLine !== false && <br />}
           </div>
         ))}
         {isWaitingInput && (
-          <form onSubmit={handleInputSubmit} className="console-input-form">
-            <span className="input-prompt">{inputPrompt}</span>
+          <form onSubmit={handleInputSubmit} className="flex items-center gap-2 mt-1">
+            <span className="text-muted-foreground">{inputPrompt}</span>
             <input
               ref={inputRef}
               type="text"
-              className="console-input"
+              className="flex-1 bg-background border border-input px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-ring"
               autoFocus
             />
           </form>

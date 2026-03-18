@@ -27,7 +27,7 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
   `;
   header.innerHTML = `
     <div style="font-size: 16px; font-weight: bold; color: #0066cc; margin-bottom: 8px;">
-      Editor Portugol Web - Código Fonte
+      Editor Zoldyck - Código Fonte
     </div>
     <div style="font-size: 11px; color: #666;">
       Algoritmo: ${algorithmName}<br>
@@ -35,7 +35,8 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
         day: '2-digit', 
         month: 'long', 
         year: 'numeric' 
-      })}
+      })}<br>
+      Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1
     </div>
   `;
 
