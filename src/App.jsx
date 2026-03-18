@@ -38,7 +38,6 @@ function AppContent() {
   const [visitorCount, setVisitorCount] = useState(null);
   const consoleRef = useRef(null);
 
-  // Auto-save robusto
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -48,7 +47,6 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, [code]);
 
-  // Fix para altura real no mobile
   useEffect(() => {
     const setAppHeight = () => {
       const vh = window.innerHeight * 0.01;
@@ -59,7 +57,6 @@ function AppContent() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // Contador de visitas com blindagem total
   useEffect(() => {
     const fetchVisits = async () => {
       try {
@@ -67,18 +64,12 @@ function AppContent() {
         if (response.ok) {
           const data = await response.json();
           setVisitorCount(data.count);
-        } else {
-          throw new Error('Fallback');
         }
       } catch (error) {
         try {
-          const localCount = parseInt(localStorage.getItem('visitor-count-v3') || '10');
-          const newCount = localCount + 1;
-          localStorage.setItem('visitor-count-v3', newCount.toString());
-          setVisitorCount(newCount);
-        } catch (e) {
-          setVisitorCount(0);
-        }
+          const localCount = parseInt(localStorage.getItem('visitor-count-v3') || '0');
+          setVisitorCount(localCount + 1);
+        } catch (e) {}
       }
     };
     fetchVisits();
@@ -104,35 +95,62 @@ function AppContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRun]);
 
-  const handleSelectExample = (id, name) => {
-    const exampleCode = getExample(id);
-    setCode(exampleCode);
-    consoleRef.current?.write('Exemplo "' + name + '" carregado!');
+  const handleExport = async (format) => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const match = code.match(/algoritmo\s+["'](.+?)["']/i);
+    const algorithmName = match ? match[1] : 'codigo';
+
+    // Se for mobile e o formato for PNG, tentar usar o Share API
+    if (isMobile && format === 'png' && navigator.share) {
+      try {
+        const result = await exportToImage(code, algorithmName);
+        if (result.success) {
+          // No mobile, a exportação gera o download, mas poderíamos tentar compartilhar o texto se preferir
+          await navigator.share({
+            title: 'Código Portugol - ' + algorithmName,
+            text: code,
+          });
+          return;
+        }
+      } catch (e) {}
+    }
+
+    try {
+      let result;
+      switch (format) {
+        case 'png': result = await exportToImage(code, algorithmName); break;
+        case 'pdf': result = await exportToPDF(code, algorithmName); break;
+        case 'docx': result = await exportToWord(code, algorithmName); break;
+        default: return;
+      }
+      if (result.success) consoleRef.current?.write('Exportado com sucesso!');
+      else consoleRef.current?.writeError('Erro: ' + result.error);
+    } catch (error) {
+      consoleRef.current?.writeError('Erro: ' + error.message);
+    }
   };
 
-  const handleRandomRedirect = () => {
-    const sites = ['https://papertoilet.com/','https://cat-bounce.com/','https://pointerpointer.com/','http://www.staggeringbeauty.com/'];
-    window.open(sites[Math.floor(Math.random() * sites.length)], '_blank');
+  const handleSelectExample = (id, name) => {
+    setCode(getExample(id));
+    consoleRef.current?.write('Exemplo "' + name + '" carregado!');
   };
 
   return (
     <div className="flex flex-col bg-background w-full overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
-      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-2 md:py-3 shadow-lg flex flex-col md:flex-row justify-between items-center gap-1 shrink-0">
+      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-1.5 md:py-3 shadow-lg flex flex-row justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
-          <Code2 className="w-6 h-6 md:w-8 md:h-8" />
+          <Code2 className="w-5 h-5 md:w-8 md:h-8" />
           <div>
-            <h1 className="text-lg md:text-2xl font-bold leading-tight">Editor Zoldyck</h1>
-            <p className="text-[10px] md:text-sm opacity-90 leading-tight">Interpretador Portugol</p>
+            <h1 className="text-sm md:text-2xl font-bold leading-tight">Editor Zoldyck</h1>
+            <p className="hidden md:block text-sm opacity-90 leading-tight">Interpretador Portugol</p>
           </div>
         </div>
-        <div className="text-center md:text-right">
-          <p className="text-[9px] md:text-xs opacity-75 hidden md:block">
-            Daniel Souza - SI FeMASS 2026.1
-          </p>
+        <div className="flex flex-col items-end">
+          <p className="text-[8px] md:text-xs opacity-75 hidden sm:block">Daniel Souza - SI FeMASS 2026.1</p>
           {visitorCount !== null && (
-            <div className="inline-flex items-center gap-2 bg-black/20 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-mono border border-white/10 shadow-inner">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
-              Acessos: {visitorCount.toLocaleString()}
+            <div className="inline-flex items-center gap-1.5 bg-black/20 px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-mono border border-white/10 shadow-inner">
+              <span className="w-1 h-1 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
+              {visitorCount.toLocaleString()}
             </div>
           )}
         </div>
@@ -142,7 +160,7 @@ function AppContent() {
 
       <main className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0 relative">
         <div className="flex flex-col border-b md:border-b-0 md:border-r border-border h-1/2 md:h-full overflow-hidden">
-          <div className="bg-muted px-4 py-1 text-[10px] md:text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
+          <div className="bg-muted px-4 py-0.5 text-[9px] md:text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
             <span>Editor</span>
             <span className="hidden md:inline opacity-50 font-normal">Ctrl+Enter para rodar</span>
           </div>
@@ -152,7 +170,7 @@ function AppContent() {
         </div>
 
         <div className="flex flex-col h-1/2 md:h-full overflow-hidden">
-          <div className="bg-muted px-4 py-1 text-[10px] md:text-sm font-medium border-b border-border shrink-0">
+          <div className="bg-muted px-4 py-0.5 text-[9px] md:text-sm font-medium border-b border-border shrink-0">
             Console
           </div>
           <div className="flex-1 relative overflow-hidden">
@@ -161,12 +179,11 @@ function AppContent() {
         </div>
       </main>
 
-      {showExportMenu && <ExportMenu onExport={async (f) => {}} onClose={() => setShowExportMenu(false)} />}
+      {showExportMenu && <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />}
       {showExamplesModal && <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />}
 
       <footer className="bg-muted/50 border-t border-border py-1 px-4 flex justify-center items-center shrink-0">
-        <button onClick={handleRandomRedirect} className="text-[9px] text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
-          <span className="w-1 h-1 bg-primary/40 rounded-full"></span>
+        <button onClick={() => window.open('https://papertoilet.com/', '_blank')} className="text-[8px] text-muted-foreground hover:text-primary transition-colors cursor-pointer">
           Professor Afonso pediu para você clicar aqui
         </button>
       </footer>
