@@ -17,6 +17,13 @@ const MOBILE_QUERY = '(max-width: 767px)';
 const LANGUAGE_STORAGE_KEY = 'portugol-language';
 const DEFAULT_LANGUAGE = 'pseudocode';
 
+const createConsoleEntry = (entry) => ({
+  id: typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`,
+  ...entry,
+});
+
 const DEFAULT_CODE = `algoritmo "Meu Primeiro Programa"
 var
    nome: caractere
@@ -50,9 +57,15 @@ function AppContent() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showExamplesModal, setShowExamplesModal] = useState(false);
   const [showDocsModal, setShowDocsModal] = useState(false);
-  const consoleRef = useRef(null);
+  const [consoleEntries, setConsoleEntries] = useState([]);
+  const [isWaitingInput, setIsWaitingInput] = useState(false);
+  const [consolePrompt, setConsolePrompt] = useState('');
+  const consoleInputResolverRef = useRef(null);
+  const consolePromptRef = useRef('');
   const mainLayoutRef = useRef(null);
   const [language, setLanguage] = useState(getStoredLanguage);
+  const [isConsolePinned, setIsConsolePinned] = useState(false);
+  const [isConsoleFloatingVisible, setIsConsoleFloatingVisible] = useState(false);
 
   const getIsMobile = () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches;
 
@@ -61,6 +74,62 @@ function AppContent() {
   const [hasExecutedOnMobile, setHasExecutedOnMobile] = useState(false);
   const [splitRatio, setSplitRatio] = useState(0.5);
   const [isResizingPanels, setIsResizingPanels] = useState(false);
+
+  const appendConsoleEntry = useCallback((entry) => {
+    setConsoleEntries((prev) => [...prev, createConsoleEntry(entry)]);
+  }, []);
+
+  const writeConsole = useCallback((text, newLine = true) => {
+    appendConsoleEntry({ type: 'output', text, newLine });
+  }, [appendConsoleEntry]);
+
+  const writeConsoleError = useCallback((text) => {
+    appendConsoleEntry({ type: 'error', text });
+  }, [appendConsoleEntry]);
+
+  const clearConsole = useCallback(() => {
+    setConsoleEntries([]);
+    setIsWaitingInput(false);
+    setConsolePrompt('');
+    consolePromptRef.current = '';
+    consoleInputResolverRef.current = null;
+  }, []);
+
+  const readConsoleInput = useCallback((prompt = 'Digite: ') => {
+    return new Promise((resolve) => {
+      setConsolePrompt(prompt);
+      consolePromptRef.current = prompt;
+      setIsWaitingInput(true);
+      consoleInputResolverRef.current = resolve;
+    });
+  }, []);
+
+  const submitConsoleInput = useCallback((value) => {
+    const promptLabel = consolePromptRef.current || '';
+    appendConsoleEntry({ type: 'input', text: `${promptLabel}${value}` });
+    setIsWaitingInput(false);
+    setConsolePrompt('');
+    consolePromptRef.current = '';
+    if (consoleInputResolverRef.current) {
+      const resolver = consoleInputResolverRef.current;
+      consoleInputResolverRef.current = null;
+      resolver(value);
+    }
+  }, [appendConsoleEntry]);
+
+  const minimizeConsole = useCallback(() => {
+    setIsConsolePinned(false);
+    setIsConsoleFloatingVisible(false);
+  }, []);
+
+  const pinConsole = useCallback(() => {
+    setIsConsolePinned(true);
+    setIsConsoleFloatingVisible(false);
+  }, []);
+
+  const hideFloatingConsole = useCallback(() => {
+    setIsConsoleFloatingVisible(false);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -100,25 +169,32 @@ function AppContent() {
     return () => mediaQuery.removeListener(handleChange);
   }, []);
 
-  useEffect(() => {
-    if (!isMobile) {
-      setShowConsolePanel(true);
-      return;
-    }
-    if (!hasExecutedOnMobile) {
-      setShowConsolePanel(false);
-    }
-  }, [isMobile, hasExecutedOnMobile]);
+useEffect(() => {
+  if (!isMobile) {
+    setShowConsolePanel(true);
+    return;
+  }
+  if (!hasExecutedOnMobile) {
+    setShowConsolePanel(false);
+  }
+}, [isMobile, hasExecutedOnMobile]);
+
+useEffect(() => {
+  if (isMobile) {
+    setIsConsolePinned(false);
+    setIsConsoleFloatingVisible(false);
+  }
+}, [isMobile]);
 
   useEffect(() => {
-    if (!isResizingPanels || isMobile) return;
+    if (!isResizingPanels || isMobile || !isConsolePinned) return;
 
     const handleMouseMove = (event) => {
       if (!mainLayoutRef.current) return;
       const rect = mainLayoutRef.current.getBoundingClientRect();
       if (rect.width <= 0) return;
       let ratio = (event.clientX - rect.left) / rect.width;
-      ratio = Math.max(0.25, Math.min(0.75, ratio));
+      ratio = Math.max(0.1, Math.min(0.9, ratio));
       setSplitRatio(ratio);
     };
 
@@ -135,7 +211,7 @@ function AppContent() {
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
     };
-  }, [isResizingPanels, isMobile]);
+  }, [isResizingPanels, isMobile, isConsolePinned]);
 
   useEffect(() => {
     if (isMobile && isResizingPanels) {
@@ -149,25 +225,39 @@ function AppContent() {
     if (isMobile) {
       setHasExecutedOnMobile(true);
       setShowConsolePanel(true);
+    } else {
+      setIsConsoleFloatingVisible(!isConsolePinned);
     }
-    consoleRef.current?.clear();
+    clearConsole();
     let result;
     if (language === 'visualg') {
       result = await runVisualG(code, {
-        onWrite: (t, n) => consoleRef.current?.write(t, n),
-        onRead: (p) => consoleRef.current?.read(p),
-        onClear: () => consoleRef.current?.clear(),
+        onWrite: (t, n) => writeConsole(t, n),
+        onRead: (p) => readConsoleInput(p),
+        onClear: () => clearConsole(),
       });
     } else {
       result = await runPortugol(
         code,
-        (t, n) => consoleRef.current?.write(t, n),
-        (p) => consoleRef.current?.read(p)
+        (t, n) => writeConsole(t, n),
+        (p) => readConsoleInput(p)
       );
     }
-    if (!result.success) consoleRef.current?.writeError('Erro: ' + result.error);
+    if (!result.success) {
+      writeConsoleError('Erro: ' + result.error);
+    }
     setIsRunning(false);
-  }, [code, isRunning, isMobile, language]);
+  }, [
+    clearConsole,
+    code,
+    isConsolePinned,
+    isMobile,
+    isRunning,
+    language,
+    readConsoleInput,
+    writeConsole,
+    writeConsoleError,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -206,12 +296,12 @@ function AppContent() {
       try {
         const shared = await shareCodeAsText();
         if (shared) {
-          consoleRef.current?.write('Código compartilhado com sucesso!');
+          writeConsole('Código compartilhado com sucesso!');
         } else {
-          consoleRef.current?.writeError('Não foi possível compartilhar automaticamente este código.');
+          writeConsoleError('Não foi possível compartilhar automaticamente este código.');
         }
       } catch (error) {
-        consoleRef.current?.writeError('Erro: ' + error.message);
+        writeConsoleError('Erro: ' + error.message);
       }
       return;
     }
@@ -232,34 +322,37 @@ function AppContent() {
           return;
       }
       if (result.success) {
-        consoleRef.current?.write(
+        writeConsole(
           format === 'png' && isMobileDevice
             ? 'Imagem exportada separadamente (sem texto).'
             : 'Exportado com sucesso!'
         );
       } else {
-        consoleRef.current?.writeError('Erro: ' + result.error);
+        writeConsoleError('Erro: ' + result.error);
       }
     } catch (error) {
-      consoleRef.current?.writeError('Erro: ' + error.message);
+      writeConsoleError('Erro: ' + error.message);
     }
   };
 
   const handleSelectExample = (id, name) => {
-    setCode(getExample(id));
-    consoleRef.current?.write('Exemplo "' + name + '" carregado!');
+    setCode(getExample(id, language));
+    writeConsole('Exemplo "' + name + '" carregado!');
   };
 
   const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
-  const editorPaneStyle = !isMobile ? { flexBasis: `${splitRatio * 100}%` } : undefined;
-  const consolePaneStyle = !isMobile ? { flexBasis: `${(1 - splitRatio) * 100}%` } : undefined;
+  const editorPaneStyle = !isMobile && isConsolePinned ? { flexBasis: `${splitRatio * 100}%` } : undefined;
+  const consolePaneStyle = !isMobile && isConsolePinned ? { flexBasis: `${(1 - splitRatio) * 100}%` } : undefined;
 
   const containerHeightStyle = isMobile
     ? { minHeight: 'calc(var(--vh, 1vh) * 100)' }
     : { height: 'calc(var(--vh, 1vh) * 100)' };
+  const shouldShowDesktopConsole = !isMobile && isConsolePinned;
+  const shouldShowMobileConsole = isMobile && showConsolePanel;
+  const shouldShowFloatingConsole = !isMobile && !isConsolePinned && isConsoleFloatingVisible;
 
   const startPanelResize = (event) => {
-    if (isMobile) return;
+    if (isMobile || !isConsolePinned) return;
     event.preventDefault();
     setIsResizingPanels(true);
   };
@@ -297,7 +390,7 @@ function AppContent() {
 
       <Toolbar
         onRun={handleRun}
-        onClear={() => consoleRef.current?.clear()}
+        onClear={clearConsole}
         onExport={() => setShowExportMenu(true)}
         onLoadExample={() => setShowExamplesModal(true)}
         isRunning={isRunning}
@@ -335,7 +428,7 @@ function AppContent() {
             </div>
           </section>
 
-          {!isMobile && (
+          {shouldShowDesktopConsole && (
             <div
               role="separator"
               aria-orientation="vertical"
@@ -347,35 +440,96 @@ function AppContent() {
             </div>
           )}
 
-          {(!isMobile || showConsolePanel) && (
+          {shouldShowDesktopConsole && (
             <section
               className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
               style={consolePaneStyle}
             >
               <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
                 <span>Console</span>
-                {isMobile && (
-                  <button
-                    onClick={() => setShowConsolePanel(false)}
-                    className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
-                  >
-                    Ocultar
-                  </button>
-                )}
+                <button
+                  onClick={minimizeConsole}
+                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
+                >
+                  Minimizar
+                </button>
               </div>
               <div className="flex-1 min-h-0">
-                <Console ref={consoleRef} />
+                <Console
+                  entries={consoleEntries}
+                  isWaitingInput={isWaitingInput}
+                  inputPrompt={consolePrompt}
+                  onSubmitInput={submitConsoleInput}
+                />
+              </div>
+            </section>
+          )}
+
+          {shouldShowMobileConsole && (
+            <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
+                <span>Console</span>
+                <button
+                  onClick={() => setShowConsolePanel(false)}
+                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
+                >
+                  Ocultar
+                </button>
+              </div>
+              <div className="flex-1 min-h-0">
+                <Console
+                  entries={consoleEntries}
+                  isWaitingInput={isWaitingInput}
+                  inputPrompt={consolePrompt}
+                  onSubmitInput={submitConsoleInput}
+                />
               </div>
             </section>
           )}
         </div>
       </main>
 
+      {shouldShowFloatingConsole && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl z-40">
+          <div className="border-2 border-foreground bg-card shadow-[10px_10px_0_rgba(0,0,0,0.2)] rounded-sm">
+            <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
+              <span>Console (flutuante)</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={pinConsole}
+                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
+                >
+                  Fixar
+                </button>
+                <button
+                  onClick={hideFloatingConsole}
+                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+            <div className="h-64">
+              <Console
+                entries={consoleEntries}
+                isWaitingInput={isWaitingInput}
+                inputPrompt={consolePrompt}
+                onSubmitInput={submitConsoleInput}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {showExportMenu && (
         <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />
       )}
       {showExamplesModal && (
-        <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />
+        <ExamplesModal
+          mode={language}
+          onSelect={handleSelectExample}
+          onClose={() => setShowExamplesModal(false)}
+        />
       )}
       {showDocsModal && (
         <DocsModal onClose={() => setShowDocsModal(false)} />

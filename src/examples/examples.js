@@ -1,13 +1,12 @@
-export const examples = {
+const pseudocodeExamples = {
   helloWorld: {
     name: 'Hello World',
     code: `algoritmo "Hello World"
 inicio
    escreval("Olá, Mundo!")
    escreval("Bem-vindo ao Editor Portugol Web!")
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   calculadora: {
     name: 'Calculadora Simples',
     code: `algoritmo "Calculadora Simples"
@@ -39,9 +38,8 @@ inicio
    fimse
    
    escreval("Resultado: ", resultado)
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   tabuada: {
     name: 'Tabuada',
     code: `algoritmo "Tabuada"
@@ -58,9 +56,8 @@ inicio
       resultado <- numero * i
       escreval(numero, " x ", i, " = ", resultado)
    fimpara
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   parImpar: {
     name: 'Par ou Ímpar',
     code: `algoritmo "Par ou Ímpar"
@@ -75,9 +72,8 @@ inicio
    senao
       escreval("O número ", numero, " é ÍMPAR")
    fimse
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   media: {
     name: 'Média de Notas',
     code: `algoritmo "Média de Notas"
@@ -108,9 +104,8 @@ inicio
          escreval("Situação: REPROVADO")
       fimse
    fimse
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   vetores: {
     name: 'Soma de Vetores',
     code: `algoritmo "Soma de Vetores"
@@ -135,9 +130,8 @@ inicio
    
    escreval("")
    escreval("Soma total: ", soma)
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   contagem: {
     name: 'Contagem com Enquanto',
     code: `algoritmo "Contagem Regressiva"
@@ -153,9 +147,8 @@ inicio
    fimenquanto
    
    escreval("FIM!")
-fimalgoritmo`
+fimalgoritmo`,
   },
-
   fibonacci: {
     name: 'Sequência de Fibonacci',
     code: `algoritmo "fibonacci"
@@ -177,17 +170,141 @@ inicio
       b <- c
    fimpara
    escreval("")
-fimalgoritmo`
+fimalgoritmo`,
   },
 };
 
-export function getExamplesList() {
-  return Object.keys(examples).map(key => ({
+const visualgExamples = {
+  visualgTabuada: {
+    name: 'Tabuada VisualG',
+    code: `programa
+{
+	funcao inicio() 
+	{
+		inteiro numero, resultado, contador
+		
+		escreva("Informe um número para ver sua tabuada: ")
+		leia(numero)
+
+		limpa()
+		
+		para (contador = 1; contador <= 10; contador++) 
+		{
+			resultado = numero * contador 
+			escreva (numero, " X ", contador, " = ", resultado , "\\n")
+		}
+	}
+}`,
+  },
+  visualgMensagem: {
+    name: 'Procedimento de Mensagem',
+    code: `programa
+{
+	funcao inicio()
+	{
+		mensagem("Bem Vindo")
+	     escreva("O resultado do primeiro cálculo é: ", calcula (3.0, 4.0))  		
+	     escreva("\\nO resultado do segundo cálculo é: ", calcula (7.0, 2.0), "\\n")  		
+	     mensagem("Tchau")
+	}
+
+	funcao mensagem (cadeia texto)
+	{
+		inteiro i
+		
+		para(i = 0; i < 50; i++)
+		{
+		  escreva ("-")
+		}
+		
+		escreva ("\\n", texto, "\\n")
+		
+		para(i = 0; i < 50; i++)
+		{
+		  escreva ("-")
+		}
+
+		escreva("\\n")
+	}
+
+	funcao real calcula (real a, real b)
+	{
+		real resultado
+		resultado = a * a + b * b
+		retorne resultado
+	}
+}`,
+  },
+  visualgTroca: {
+    name: 'Troca de Variáveis',
+    code: `programa
+{
+	funcao inicio() 
+	{
+		inteiro a, b, aux
+
+		escreva("Informe um valor para A: ")
+		leia(a)
+
+		escreva("Informe um valor para B: ")
+		leia(b)
+
+		limpa()
+
+		escreva("Antes da troca: A = ", a, "; B = ", b, "\\n")
+		
+		aux = a
+		a = b
+		b = aux
+
+		escreva("Depois da troca: A = ", a, "; B = ", b, "\\n")
+	}
+}`,
+  },
+  visualgDias: {
+    name: 'Dias desde 01/01/0001',
+    code: `programa
+{
+	funcao inicio()
+	{
+		inteiro ano_atual, qtd_anos_bi, dias
+
+		escreva("Informe o ano atual: ")
+		leia(ano_atual)
+
+		qtd_anos_bi = ano_atual / 4 
+		dias = (ano_atual - 1) * 365 +  qtd_anos_bi 
+		
+		escreva("Já se passaram ", dias, " dias desde 01/01/0001\\n")
+	}
+}`,
+  },
+};
+
+const EXAMPLES_BY_MODE = {
+  pseudocode: pseudocodeExamples,
+  visualg: visualgExamples,
+};
+
+const DEFAULT_EXAMPLE_BY_MODE = {
+  pseudocode: 'helloWorld',
+  visualg: 'visualgTabuada',
+};
+
+export function getExamplesList(mode = 'pseudocode') {
+  const registry = EXAMPLES_BY_MODE[mode] || EXAMPLES_BY_MODE.pseudocode;
+  return Object.keys(registry).map((key) => ({
     id: key,
-    name: examples[key].name,
+    name: registry[key].name,
   }));
 }
 
-export function getExample(id) {
-  return examples[id]?.code || examples.helloWorld.code;
+export function getExample(id, mode = 'pseudocode') {
+  const registry = EXAMPLES_BY_MODE[mode] || EXAMPLES_BY_MODE.pseudocode;
+  const fallback = registry[DEFAULT_EXAMPLE_BY_MODE[mode] || DEFAULT_EXAMPLE_BY_MODE.pseudocode];
+  return registry[id]?.code || fallback.code;
+}
+
+export function getDefaultCode(mode = 'pseudocode') {
+  return getExample(DEFAULT_EXAMPLE_BY_MODE[mode] || DEFAULT_EXAMPLE_BY_MODE.pseudocode, mode);
 }

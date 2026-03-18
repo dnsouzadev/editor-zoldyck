@@ -3,8 +3,8 @@ import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { getExamplesList } from '../../examples/examples';
 
-export default function ExamplesModal({ onSelect, onClose }) {
-  const examples = getExamplesList();
+export default function ExamplesModal({ mode = 'pseudocode', onSelect, onClose }) {
+  const examples = getExamplesList(mode);
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
@@ -15,7 +15,12 @@ export default function ExamplesModal({ onSelect, onClose }) {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2 text-primary">
             <FileCode className="w-6 h-6" />
-            <h2 className="text-xl font-bold text-foreground">Exemplos de Código</h2>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Exemplos de Código</h2>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+                Modo {mode === 'visualg' ? 'VisualG' : 'Pseudocódigo'}
+              </p>
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />

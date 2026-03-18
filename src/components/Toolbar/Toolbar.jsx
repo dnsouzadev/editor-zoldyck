@@ -60,12 +60,12 @@ export default function Toolbar({
       <div className="flex items-center gap-2 md:gap-3">
         <div className="flex flex-col text-[10px] uppercase tracking-[0.3em]">
           <span className="text-muted-foreground">Modo</span>
-          <div className="relative mt-1">
+          <div className="relative mt-1 h-9 md:h-10">
             <select
               value={language}
               onChange={(event) => onLanguageChange?.(event.target.value)}
               aria-label="Selecionar modo do interpretador"
-              className="appearance-none bg-card text-foreground border-2 border-foreground px-3 py-1 pr-8 font-mono text-[11px] tracking-[0.2em] rounded-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              className="appearance-none bg-card text-foreground border-2 border-foreground px-3 pr-8 font-mono text-[11px] tracking-[0.2em] rounded-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer h-full w-[150px]"
             >
               {LANGUAGE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -73,7 +73,7 @@ export default function Toolbar({
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-foreground text-xs">
+            <span className="pointer-events-none absolute inset-0 right-0 flex items-center justify-end pr-2 text-foreground text-xs">
               ▼
             </span>
           </div>
