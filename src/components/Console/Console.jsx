@@ -53,13 +53,13 @@ const Console = forwardRef(({ onInput }, ref) => {
   };
 
   return (
-    <div className="h-full bg-gradient-to-br from-muted/40 via-muted/30 to-background/50 p-4 overflow-y-auto font-mono text-xs md:text-sm backdrop-blur-sm">
+    <div className="h-full bg-card p-4 overflow-y-auto font-mono text-xs md:text-sm">
       <div className="flex flex-col gap-1">
         {output.map((item, index) => (
           <div key={index} className={cn(
-            "leading-relaxed break-words whitespace-pre-wrap px-1 py-0.5 rounded transition-colors",
-            item.type === 'error' && "text-destructive font-semibold bg-destructive/5 border-l-2 border-destructive pl-2",
-            item.type === 'input' && "text-primary font-medium bg-primary/5 border-l-2 border-primary pl-2",
+            "leading-relaxed break-words whitespace-pre-wrap border-b border-dashed border-foreground/20 py-1",
+            item.type === 'error' && "text-destructive font-semibold bg-destructive/10 px-2",
+            item.type === 'input' && "text-primary font-semibold px-2",
             item.type === 'output' && "text-foreground/95"
           )}>
             {item.text}
@@ -67,12 +67,12 @@ const Console = forwardRef(({ onInput }, ref) => {
           </div>
         ))}
         {isWaitingInput && (
-          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-2 bg-accent/10 p-2 rounded-lg border border-accent/20">
-            <span className="text-muted-foreground shrink-0 font-medium">{inputPrompt}</span>
+          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-3 border-2 border-foreground px-3 py-2">
+            <span className="text-muted-foreground shrink-0 font-semibold uppercase tracking-[0.2em] text-[10px]">{inputPrompt}</span>
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 min-w-[120px] bg-background/80 border border-input px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm font-mono transition-all"
+              className="flex-1 min-w-[120px] bg-background border border-input px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm font-mono"
               autoFocus
             />
           </form>

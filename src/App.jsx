@@ -12,6 +12,8 @@ import { exportToPDF } from './export/toPDF';
 import { exportToWord } from './export/toWord';
 import { getExample } from './examples/examples';
 
+const MOBILE_QUERY = '(max-width: 767px)';
+
 const DEFAULT_CODE = `algoritmo "Meu Primeiro Programa"
 var
    nome: caractere
@@ -38,6 +40,12 @@ function AppContent() {
   const [visitorCount, setVisitorCount] = useState(null);
   const consoleRef = useRef(null);
 
+  const getIsMobile = () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches;
+
+  const [isMobile, setIsMobile] = useState(getIsMobile);
+  const [showConsolePanel, setShowConsolePanel] = useState(() => !getIsMobile());
+  const [hasExecutedOnMobile, setHasExecutedOnMobile] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -56,6 +64,29 @@ function AppContent() {
     setAppHeight();
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
+    const handleChange = (event) => setIsMobile(event.matches);
+    handleChange(mediaQuery);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowConsolePanel(true);
+      return;
+    }
+    if (!hasExecutedOnMobile) {
+      setShowConsolePanel(false);
+    }
+  }, [isMobile, hasExecutedOnMobile]);
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -78,11 +109,19 @@ function AppContent() {
   const handleRun = useCallback(async () => {
     if (isRunning) return;
     setIsRunning(true);
+    if (isMobile) {
+      setHasExecutedOnMobile(true);
+      setShowConsolePanel(true);
+    }
     consoleRef.current?.clear();
-    const result = await runPortugol(code, (t, n) => consoleRef.current?.write(t, n), (p) => consoleRef.current?.read(p));
+    const result = await runPortugol(
+      code,
+      (t, n) => consoleRef.current?.write(t, n),
+      (p) => consoleRef.current?.read(p)
+    );
     if (!result.success) consoleRef.current?.writeError('Erro: ' + result.error);
     setIsRunning(false);
-  }, [code, isRunning]);
+  }, [code, isRunning, isMobile]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -96,30 +135,65 @@ function AppContent() {
   }, [handleRun]);
 
   const handleExport = async (format) => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const hasNavigator = typeof navigator !== 'undefined';
+    const isMobileDevice = hasNavigator && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const match = code.match(/algoritmo\s+["'](.+?)["']/i);
     const algorithmName = match ? match[1] : 'codigo';
 
-    if (isMobile && format === 'png' && navigator.share) {
-      try {
+    const shareCodeAsText = async () => {
+      if (!hasNavigator) return false;
+      if (navigator.share) {
         await navigator.share({
           title: 'Código Portugol - ' + algorithmName,
           text: code,
         });
-        return;
-      } catch (e) {}
+        return true;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code);
+        return true;
+      }
+      return false;
+    };
+
+    if (format === 'text') {
+      try {
+        const shared = await shareCodeAsText();
+        if (shared) {
+          consoleRef.current?.write('Código compartilhado com sucesso!');
+        } else {
+          consoleRef.current?.writeError('Não foi possível compartilhar automaticamente este código.');
+        }
+      } catch (error) {
+        consoleRef.current?.writeError('Erro: ' + error.message);
+      }
+      return;
     }
 
     try {
       let result;
       switch (format) {
-        case 'png': result = await exportToImage(code, algorithmName); break;
-        case 'pdf': result = await exportToPDF(code, algorithmName); break;
-        case 'docx': result = await exportToWord(code, algorithmName); break;
-        default: return;
+        case 'png':
+          result = await exportToImage(code, algorithmName);
+          break;
+        case 'pdf':
+          result = await exportToPDF(code, algorithmName);
+          break;
+        case 'docx':
+          result = await exportToWord(code, algorithmName);
+          break;
+        default:
+          return;
       }
-      if (result.success) consoleRef.current?.write('Exportado com sucesso!');
-      else consoleRef.current?.writeError('Erro: ' + result.error);
+      if (result.success) {
+        consoleRef.current?.write(
+          format === 'png' && isMobileDevice
+            ? 'Imagem exportada separadamente (sem texto).'
+            : 'Exportado com sucesso!'
+        );
+      } else {
+        consoleRef.current?.writeError('Erro: ' + result.error);
+      }
     } catch (error) {
       consoleRef.current?.writeError('Erro: ' + error.message);
     }
@@ -130,68 +204,104 @@ function AppContent() {
     consoleRef.current?.write('Exemplo "' + name + '" carregado!');
   };
 
+  const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
+
   return (
-    <div className="flex flex-col bg-background w-full overflow-hidden font-mono" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
-      <header className="bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground px-4 md:px-6 py-3 md:py-4 shadow-xl flex flex-col md:flex-row justify-between items-center gap-2 shrink-0 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzAtMy4zMTQgMi42ODYtNiA2LTZzNiAyLjY4NiA2IDYtMi42ODYgNi02IDYtNi0yLjY4Ni02LTZ6TTAgMThjMC0zLjMxNCAyLjY4Ni02IDYtNnM2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNnptMTggMzZjMC0zLjMxNCAyLjY4Ni02IDYtNnM2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="flex items-center gap-3 z-10">
-          <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg">
-            <Code2 className="w-6 h-6 md:w-7 md:h-7 drop-shadow-md" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold leading-tight tracking-tight drop-shadow-md">Editor Zoldyck</h1>
-            <p className="text-xs md:text-sm opacity-95 leading-tight font-medium">Interpretador Portugol</p>
-          </div>
-        </div>
-        <div className="text-center md:text-right z-10">
-          <p className="text-[10px] md:text-xs opacity-90 hidden md:block font-medium mb-1">
-            Daniel Souza • SI FeMASS 2026.1
-          </p>
-          {visitorCount !== null && (
-            <div className="inline-flex items-center gap-2 bg-black/25 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] md:text-xs font-mono border border-white/20 shadow-lg">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
-              <span className="font-semibold">Acessos:</span> {visitorCount.toLocaleString()}
+    <div
+      className="flex flex-col bg-background text-foreground w-full overflow-hidden font-mono"
+      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+    >
+      <header className="border-b-2 border-border px-4 md:px-8 py-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center rounded-sm bg-card">
+              <Code2 className="w-6 h-6" />
             </div>
-          )}
+            <div className="space-y-1">
+              <p className="uppercase text-[10px] tracking-[0.35em] text-muted-foreground">Portugol</p>
+              <h1 className="text-2xl md:text-4xl font-black leading-tight">Editor Zoldyck</h1>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Interpretador</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-start md:items-end gap-2 text-[11px] uppercase tracking-[0.2em]">
+            <p className="text-muted-foreground">Daniel Souza • SI FeMASS 2026.1</p>
+            {visitorCount !== null && (
+              <div className="flex items-center gap-2 border-2 border-foreground px-3 py-1">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                Acessos: {visitorCount.toLocaleString()}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      <Toolbar onRun={handleRun} onClear={() => consoleRef.current?.clear()} onExport={() => setShowExportMenu(true)} onLoadExample={() => setShowExamplesModal(true)} isRunning={isRunning} />
+      <Toolbar
+        onRun={handleRun}
+        onClear={() => consoleRef.current?.clear()}
+        onExport={() => setShowExportMenu(true)}
+        onLoadExample={() => setShowExamplesModal(true)}
+        isRunning={isRunning}
+      />
 
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0 relative bg-muted/20">
-        <div className="flex flex-col border-b md:border-b-0 md:border-r border-border/50 h-1/2 md:h-full overflow-hidden bg-background/50 backdrop-blur-sm">
-          <div className="bg-gradient-to-r from-muted/80 to-muted/60 px-4 py-2 text-xs md:text-sm font-semibold border-b border-border/50 flex justify-between items-center shrink-0 backdrop-blur-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></div>
-              <span className="text-foreground/90">Editor</span>
-            </div>
-            <span className="hidden md:inline opacity-60 font-normal text-xs">Ctrl+Enter para rodar</span>
-          </div>
-          <div className="flex-1 relative overflow-hidden">
-            <Editor code={code} onChange={setCode} />
-          </div>
+      {mobileConsoleRevealHint && (
+        <div className="px-4 md:px-8 py-2 border-b border-dashed border-border flex justify-end">
+          <button
+            onClick={() => setShowConsolePanel(true)}
+            className="text-[11px] uppercase tracking-[0.3em] border-2 border-foreground px-3 py-1 hover:bg-foreground hover:text-background transition-colors"
+          >
+            Mostrar console
+          </button>
         </div>
+      )}
 
-        <div className="flex flex-col h-1/2 md:h-full overflow-hidden bg-background/50 backdrop-blur-sm">
-          <div className="bg-gradient-to-r from-muted/60 to-muted/80 px-4 py-2 text-xs md:text-sm font-semibold border-b border-border/50 shrink-0 backdrop-blur-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]"></div>
-              <span className="text-foreground/90">Console</span>
+      <main className="flex-1 px-4 md:px-8 py-4 bg-background overflow-hidden">
+        <div className={`${isMobile ? 'flex flex-col gap-4 h-full' : 'grid grid-cols-2 gap-4 h-full'}`}>
+          <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+            <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
+              <span>Editor</span>
+              <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
             </div>
-          </div>
-          <div className="flex-1 relative overflow-hidden">
-            <Console ref={consoleRef} />
-          </div>
+            <div className="flex-1 min-h-0">
+              <Editor code={code} onChange={setCode} />
+            </div>
+          </section>
+
+          {(!isMobile || showConsolePanel) && (
+            <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+              <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
+                <span>Console</span>
+                {isMobile && (
+                  <button
+                    onClick={() => setShowConsolePanel(false)}
+                    className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
+                  >
+                    Ocultar
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 min-h-0">
+                <Console ref={consoleRef} />
+              </div>
+            </section>
+          )}
         </div>
       </main>
 
-      {showExportMenu && <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />}
-      {showExamplesModal && <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />}
+      {showExportMenu && (
+        <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />
+      )}
+      {showExamplesModal && (
+        <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />
+      )}
 
-      <footer className="bg-gradient-to-r from-muted/70 to-muted/50 border-t border-border/50 py-2 px-4 flex justify-center items-center shrink-0 backdrop-blur-sm">
-        <button onClick={() => window.open('https://papertoilet.com/', '_blank')} className="text-[9px] md:text-[10px] text-muted-foreground hover:text-primary transition-all hover:scale-105 cursor-pointer font-medium">
+      <footer className="border-t-2 border-border px-4 md:px-8 py-3 text-[10px] uppercase tracking-[0.3em] flex justify-between flex-wrap gap-2">
+        <button
+          onClick={() => window.open('https://papertoilet.com/', '_blank')}
+          className="underline-offset-4 hover:underline text-foreground"
+        >
           Professor Afonso pediu para você clicar aqui
         </button>
+        <span className="text-muted-foreground">Edição brutalista · Monoespaçada</span>
       </footer>
     </div>
   );
