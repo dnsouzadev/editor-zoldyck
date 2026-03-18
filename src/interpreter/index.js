@@ -4,6 +4,7 @@
 import { Lexer } from './lexer.js';
 import { Parser } from './parser.js';
 import { Evaluator } from './evaluator.js';
+export { runVisualG } from './visualg/index.js';
 
 export async function runPortugol(code, onWrite, onRead) {
   try {

@@ -2,10 +2,15 @@ import { Editor as MonacoEditor, loader } from '@monaco-editor/react';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '../ThemeProvider';
 
-export default function Editor({ code, onChange }) {
+export default function Editor({ code, onChange, onRunShortcut }) {
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
+  const runShortcutRef = useRef(onRunShortcut);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    runShortcutRef.current = onRunShortcut;
+  }, [onRunShortcut]);
 
   function handleEditorDidMount(editor, monaco) {
     editorRef.current = editor;
@@ -15,18 +20,20 @@ export default function Editor({ code, onChange }) {
 
     monaco.languages.setMonarchTokensProvider('portugol', {
       keywords: [
-        'algoritmo', 'var', 'inicio', 'fim', 'fimalgoritmo',
+        'algoritmo', 'programa', 'var', 'inicio', 'fim', 'fimalgoritmo',
+        'funcao', 'função', 'fimfuncao', 'fimfunção', 'procedimento', 'fimprocedimento',
         'se', 'entao', 'então', 'senao', 'senão', 'fimse',
         'enquanto', 'faca', 'faça', 'fimenquanto',
         'para', 'de', 'ate', 'até', 'passo', 'fimpara',
         'repita', 'fimrepita',
-        'inteiro', 'real', 'caractere', 'logico', 'lógico', 'vetor',
+        'inteiro', 'real', 'caractere', 'cadeia', 'logico', 'lógico', 'vetor',
         'verdadeiro', 'falso',
+        'retorne', 'retorna',
         'e', 'ou', 'nao', 'não', 'mod'
       ],
       
       builtins: [
-        'escreva', 'escreval', 'leia'
+        'escreva', 'escreval', 'leia', 'limpa'
       ],
 
       operators: [
@@ -158,6 +165,11 @@ export default function Editor({ code, onChange }) {
 
         return null;
       }
+    });
+
+    // Atalho Ctrl/Cmd + Enter
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      runShortcutRef.current?.();
     });
 
     // Forçar tema no mount

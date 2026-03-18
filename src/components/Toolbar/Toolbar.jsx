@@ -1,14 +1,22 @@
-import { Play, Trash2, Download, FileCode, Moon, Sun } from 'lucide-react';
+import { Play, Trash2, Download, FileCode, Moon, Sun, BookOpen } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../ThemeProvider';
 import { cn } from '../../lib/utils';
+
+const LANGUAGE_OPTIONS = [
+  { value: 'pseudocode', label: 'Pseudocódigo' },
+  { value: 'visualg', label: 'VisualG' },
+];
 
 export default function Toolbar({ 
   onRun, 
   onClear, 
   onExport, 
   onLoadExample, 
-  isRunning 
+  isRunning,
+  language,
+  onLanguageChange,
+  onShowDocs,
 }) {
   const { theme, toggleTheme } = useTheme();
 
@@ -42,7 +50,7 @@ export default function Toolbar({
           variant="ghost"
           onClick={onLoadExample}
           size="sm"
-          className="h-9 md:h-10 px-3 md:px-4 rounded-none border-2 border-dashed border-foreground/70 font-mono text-[11px] uppercase tracking-[0.25em] hover:bg-secondary/70"
+          className="h-9 md:h-10 px-3 md:px-4 rounded-none border-2 border-foreground font-mono text-[11px] uppercase tracking-[0.25em] hover:bg-secondary/70"
         >
           <FileCode className="w-4 h-4 text-primary" />
           <span className="hidden md:inline ml-2 text-foreground/90">Exemplos</span>
@@ -50,6 +58,27 @@ export default function Toolbar({
       </div>
       
       <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex flex-col text-[10px] uppercase tracking-[0.3em]">
+          <span className="text-muted-foreground">Modo</span>
+          <div className="relative mt-1">
+            <select
+              value={language}
+              onChange={(event) => onLanguageChange?.(event.target.value)}
+              aria-label="Selecionar modo do interpretador"
+              className="appearance-none bg-card text-foreground border-2 border-foreground px-3 py-1 pr-8 font-mono text-[11px] tracking-[0.2em] rounded-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              {LANGUAGE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-foreground text-xs">
+              ▼
+            </span>
+          </div>
+        </div>
+
         <Button 
           variant="secondary"
           onClick={onExport}
@@ -58,6 +87,16 @@ export default function Toolbar({
         >
           <Download className="w-4 h-4" />
           <span className="hidden md:inline ml-2">Exportar</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={onShowDocs}
+          size="sm"
+          className="h-9 md:h-10 px-3 md:px-4 rounded-none border-2 border-foreground font-mono text-[11px] uppercase tracking-[0.25em] hover:bg-secondary/70"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span className="hidden md:inline ml-2">Docs</span>
         </Button>
 
         <Button

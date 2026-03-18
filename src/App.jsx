@@ -5,14 +5,17 @@ import Console from './components/Console/Console';
 import Toolbar from './components/Toolbar/Toolbar';
 import ExportMenu from './components/ExportMenu/ExportMenu';
 import ExamplesModal from './components/ExamplesModal/ExamplesModal';
+import DocsModal from './components/DocsModal/DocsModal';
 import { ThemeProvider } from './components/ThemeProvider';
-import { runPortugol } from './interpreter';
+import { runPortugol, runVisualG } from './interpreter';
 import { exportToImage } from './export/toImage';
 import { exportToPDF } from './export/toPDF';
 import { exportToWord } from './export/toWord';
 import { getExample } from './examples/examples';
 
 const MOBILE_QUERY = '(max-width: 767px)';
+const LANGUAGE_STORAGE_KEY = 'portugol-language';
+const DEFAULT_LANGUAGE = 'pseudocode';
 
 const DEFAULT_CODE = `algoritmo "Meu Primeiro Programa"
 var
@@ -23,6 +26,15 @@ inicio
    escreval("Olá, ", nome, "!")
    escreval("Bem-vindo ao Editor Zoldyck!")
 fimalgoritmo`;
+
+function getStoredLanguage() {
+  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
+  try {
+    return localStorage.getItem(LANGUAGE_STORAGE_KEY) || DEFAULT_LANGUAGE;
+  } catch (error) {
+    return DEFAULT_LANGUAGE;
+  }
+}
 
 function AppContent() {
   const [code, setCode] = useState(() => {
@@ -37,14 +49,18 @@ function AppContent() {
   const [isRunning, setIsRunning] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showExamplesModal, setShowExamplesModal] = useState(false);
-  const [visitorCount, setVisitorCount] = useState(null);
+  const [showDocsModal, setShowDocsModal] = useState(false);
   const consoleRef = useRef(null);
+  const mainLayoutRef = useRef(null);
+  const [language, setLanguage] = useState(getStoredLanguage);
 
   const getIsMobile = () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches;
 
   const [isMobile, setIsMobile] = useState(getIsMobile);
   const [showConsolePanel, setShowConsolePanel] = useState(() => !getIsMobile());
   const [hasExecutedOnMobile, setHasExecutedOnMobile] = useState(false);
+  const [splitRatio, setSplitRatio] = useState(0.5);
+  const [isResizingPanels, setIsResizingPanels] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,6 +70,12 @@ function AppContent() {
     }, 1000);
     return () => clearTimeout(timer);
   }, [code]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    } catch (error) {}
+  }, [language]);
 
   useEffect(() => {
     const setAppHeight = () => {
@@ -89,22 +111,37 @@ function AppContent() {
   }, [isMobile, hasExecutedOnMobile]);
 
   useEffect(() => {
-    const fetchVisits = async () => {
-      try {
-        const response = await fetch('https://api.counterapi.dev/v1/zoldyck-editor-daniel-v3/visits/increment');
-        if (response.ok) {
-          const data = await response.json();
-          setVisitorCount(data.count);
-        }
-      } catch (error) {
-        try {
-          const localCount = parseInt(localStorage.getItem('visitor-count-v3') || '0');
-          setVisitorCount(localCount + 1);
-        } catch (e) {}
-      }
+    if (!isResizingPanels || isMobile) return;
+
+    const handleMouseMove = (event) => {
+      if (!mainLayoutRef.current) return;
+      const rect = mainLayoutRef.current.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      let ratio = (event.clientX - rect.left) / rect.width;
+      ratio = Math.max(0.25, Math.min(0.75, ratio));
+      setSplitRatio(ratio);
     };
-    fetchVisits();
-  }, []);
+
+    const stopResizing = () => setIsResizingPanels(false);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', stopResizing);
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', stopResizing);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    };
+  }, [isResizingPanels, isMobile]);
+
+  useEffect(() => {
+    if (isMobile && isResizingPanels) {
+      setIsResizingPanels(false);
+    }
+  }, [isMobile, isResizingPanels]);
 
   const handleRun = useCallback(async () => {
     if (isRunning) return;
@@ -114,14 +151,23 @@ function AppContent() {
       setShowConsolePanel(true);
     }
     consoleRef.current?.clear();
-    const result = await runPortugol(
-      code,
-      (t, n) => consoleRef.current?.write(t, n),
-      (p) => consoleRef.current?.read(p)
-    );
+    let result;
+    if (language === 'visualg') {
+      result = await runVisualG(code, {
+        onWrite: (t, n) => consoleRef.current?.write(t, n),
+        onRead: (p) => consoleRef.current?.read(p),
+        onClear: () => consoleRef.current?.clear(),
+      });
+    } else {
+      result = await runPortugol(
+        code,
+        (t, n) => consoleRef.current?.write(t, n),
+        (p) => consoleRef.current?.read(p)
+      );
+    }
     if (!result.success) consoleRef.current?.writeError('Erro: ' + result.error);
     setIsRunning(false);
-  }, [code, isRunning, isMobile]);
+  }, [code, isRunning, isMobile, language]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -205,10 +251,18 @@ function AppContent() {
   };
 
   const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
+  const editorPaneStyle = !isMobile ? { flexBasis: `${splitRatio * 100}%` } : undefined;
+  const consolePaneStyle = !isMobile ? { flexBasis: `${(1 - splitRatio) * 100}%` } : undefined;
 
   const containerHeightStyle = isMobile
     ? { minHeight: 'calc(var(--vh, 1vh) * 100)' }
     : { height: 'calc(var(--vh, 1vh) * 100)' };
+
+  const startPanelResize = (event) => {
+    if (isMobile) return;
+    event.preventDefault();
+    setIsResizingPanels(true);
+  };
 
   return (
     <div
@@ -235,15 +289,9 @@ function AppContent() {
               <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Interpretador</p>
             </div>
           </div>
-          <div className="flex flex-col items-start md:items-end gap-2 text-[11px] uppercase tracking-[0.2em]">
-            <p className="text-muted-foreground">Daniel Souza • SI FeMASS 2026.1</p>
-            {visitorCount !== null && (
-              <div className="flex items-center gap-2 border-2 border-foreground px-3 py-1">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Acessos: {visitorCount.toLocaleString()}
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col items-start md:items-end gap-1 text-[11px] uppercase tracking-[0.2em]">
+          <p className="text-muted-foreground">Daniel Souza • SI FeMASS 2026.1</p>
+        </div>
         </div>
       </header>
 
@@ -253,6 +301,9 @@ function AppContent() {
         onExport={() => setShowExportMenu(true)}
         onLoadExample={() => setShowExamplesModal(true)}
         isRunning={isRunning}
+        language={language}
+        onLanguageChange={setLanguage}
+        onShowDocs={() => setShowDocsModal(true)}
       />
 
       {mobileConsoleRevealHint && (
@@ -267,19 +318,40 @@ function AppContent() {
       )}
 
       <main className="flex-1 px-4 md:px-8 py-4 bg-background overflow-hidden">
-        <div className={`${isMobile ? 'flex flex-col gap-4 h-full' : 'grid grid-cols-2 gap-4 h-full'}`}>
-          <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+        <div
+          ref={mainLayoutRef}
+          className={`${isMobile ? 'flex flex-col gap-4 h-full' : 'flex h-full gap-4 items-stretch'}`}
+        >
+          <section
+            className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
+            style={editorPaneStyle}
+          >
             <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
               <span>Editor</span>
               <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
             </div>
             <div className="flex-1 min-h-0">
-              <Editor code={code} onChange={setCode} />
+              <Editor code={code} onChange={setCode} onRunShortcut={handleRun} />
             </div>
           </section>
 
+          {!isMobile && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Redimensionar painéis"
+              className="hidden md:flex flex-col items-center justify-center w-2 cursor-col-resize border-2 border-foreground bg-background relative"
+              onMouseDown={startPanelResize}
+            >
+              <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 w-0.5 bg-foreground/60 pointer-events-none" />
+            </div>
+          )}
+
           {(!isMobile || showConsolePanel) && (
-            <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+            <section
+              className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
+              style={consolePaneStyle}
+            >
               <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
                 <span>Console</span>
                 {isMobile && (
@@ -304,6 +376,9 @@ function AppContent() {
       )}
       {showExamplesModal && (
         <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />
+      )}
+      {showDocsModal && (
+        <DocsModal onClose={() => setShowDocsModal(false)} />
       )}
 
       <footer className="border-t-2 border-border px-4 md:px-8 py-3 text-[10px] uppercase tracking-[0.3em] flex justify-between flex-wrap gap-2">
