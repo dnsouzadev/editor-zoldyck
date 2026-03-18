@@ -64,7 +64,7 @@ function App() {
     const result = await runPortugol(code, onWrite, onRead);
 
     if (!result.success) {
-      consoleRef.current?.writeError(\`❌ Erro: \${result.error}\`);
+      consoleRef.current?.writeError('❌ Erro: ' + result.error);
     }
 
     setIsRunning(false);
@@ -95,21 +95,21 @@ function App() {
       }
 
       if (result.success) {
-        consoleRef.current?.write(\`✅ Exportado com sucesso como \${format.toUpperCase()}!\`);
+        consoleRef.current?.write('✅ Exportado com sucesso como ' + format.toUpperCase() + '!');
       } else {
-        consoleRef.current?.writeError(\`❌ Erro ao exportar: \${result.error}\`);
+        consoleRef.current?.writeError('❌ Erro ao exportar: ' + result.error);
       }
     } catch (error) {
-      consoleRef.current?.writeError(\`❌ Erro ao exportar: \${error.message}\`);
+      consoleRef.current?.writeError('❌ Erro ao exportar: ' + error.message);
     }
   };
 
   const handleLoadExample = () => {
     const examples = getExamplesList();
-    const examplesText = examples.map((ex, i) => \`\${i + 1}. \${ex.name}\`).join('\n');
+    const examplesText = examples.map((ex, i) => `${i + 1}. ${ex.name}`).join('\n');
     
     const choice = prompt(
-      \`Escolha um exemplo:\n\n\${examplesText}\n\nDigite o número:\`
+      `Escolha um exemplo:\n\n${examplesText}\n\nDigite o número:`
     );
     
     if (choice) {
@@ -117,7 +117,7 @@ function App() {
       if (index >= 0 && index < examples.length) {
         const exampleCode = getExample(examples[index].id);
         setCode(exampleCode);
-        consoleRef.current?.write(\`📄 Exemplo "\${examples[index].name}" carregado!\`);
+        consoleRef.current?.write('📄 Exemplo "' + examples[index].name + '" carregado!');
       }
     }
   };
