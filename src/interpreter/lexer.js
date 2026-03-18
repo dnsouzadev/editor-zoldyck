@@ -69,6 +69,8 @@ const TokenType = {
   FECHA_PAREN: 'FECHA_PAREN', // )
   ABRE_COLCHETE: 'ABRE_COLCHETE', // [
   FECHA_COLCHETE: 'FECHA_COLCHETE', // ]
+  ABRE_CHAVE: 'ABRE_CHAVE',     // {
+  FECHA_CHAVE: 'FECHA_CHAVE',     // }
   VIRGULA: 'VIRGULA',         // ,
   DOIS_PONTOS: 'DOIS_PONTOS', // :
   PONTO_VIRGULA: 'PONTO_VIRGULA', // ;
@@ -312,6 +314,8 @@ export class Lexer {
         case ')': return new Token(TokenType.FECHA_PAREN, ')', this.line, startColumn);
         case '[': return new Token(TokenType.ABRE_COLCHETE, '[', this.line, startColumn);
         case ']': return new Token(TokenType.FECHA_COLCHETE, ']', this.line, startColumn);
+        case '{': return new Token(TokenType.ABRE_CHAVE, '{', this.line, startColumn);
+        case '}': return new Token(TokenType.FECHA_CHAVE, '}', this.line, startColumn);
         case ',': return new Token(TokenType.VIRGULA, ',', this.line, startColumn);
         case ':': return new Token(TokenType.DOIS_PONTOS, ':', this.line, startColumn);
         case ';': return new Token(TokenType.PONTO_VIRGULA, ';', this.line, startColumn);

@@ -1,22 +1,24 @@
-# 📝 Editor Portugol Web
+# Editor Zoldyck
 
-Editor e interpretador online de **Portugol** com funcionalidades de execução e exportação para imagem, PDF e Word. Desenvolvido para facilitar o aprendizado de lógica de programação e atender requisitos acadêmicos.
+Editor e interpretador online de **Portugol** com funcionalidades modernas de execução e exportação. Desenvolvido para facilitar o aprendizado de lógica de programação.
 
-![Portugol Web Editor](https://img.shields.io/badge/React-19.2.4-blue) ![Vite](https://img.shields.io/badge/Vite-8.0-purple) ![License](https://img.shields.io/badge/license-MIT-green)
+**Desenvolvido por:** Daniel Souza - Aluno do curso de Sistemas de Informação FeMASS/2026.1
+
+![React](https://img.shields.io/badge/React-19.2.4-blue) ![Vite](https://img.shields.io/badge/Vite-8.0-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-3.4-cyan) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Funcionalidades
 
-### ✏️ Editor de Código
-- **Monaco Editor** (mesmo editor do VS Code)
+### ✨ Interface Moderna
+- **Tailwind CSS** - Design moderno e responsivo
+- **Tema Claro/Escuro** - Alternar entre temas com um clique
+- **Ícones Lucide** - Interface limpa e profissional
+- **Monaco Editor** - Editor profissional (mesmo do VS Code)
 - Syntax highlighting customizado para Portugol
-- Numeração de linhas
-- Auto-indentação
-- Tema escuro profissional
 
-### ▶️ Interpretador Portugol
-Executa código Portugol completo diretamente no navegador:
+### ⚙️ Interpretador Portugol Completo
+Executa código Portugol diretamente no navegador:
 
-- ✅ Declaração de variáveis (inteiro, real, caractere, logico)
+- ✅ Variáveis (inteiro, real, caractere, logico)
 - ✅ Vetores e matrizes
 - ✅ Operadores aritméticos (+, -, *, /, ^, mod)
 - ✅ Operadores relacionais (=, <>, >, <, >=, <=)
@@ -25,26 +27,31 @@ Executa código Portugol completo diretamente no navegador:
 - ✅ Estruturas de repetição (enquanto, para, repita...até)
 - ✅ Entrada/saída (leia, escreva, escreval)
 
-### 📤 Exportação
-Perfeito para entregar trabalhos no WebAcadêmico:
+### 📤 Exportação para Trabalhos Acadêmicos
+Perfeito para entregar no WebAcadêmico:
 
-- **🖼️ PNG**: Captura visual do código formatado
-- **📄 PDF**: Documento profissional com cabeçalho
-- **📝 DOCX**: Arquivo Word editável
+- **PNG** - Captura visual do código formatado
+- **PDF** - Documento profissional com cabeçalho
+- **DOCX** - Arquivo Word editável
 
-### 💾 Extras
-- Persistência automática no navegador (localStorage)
-- 7 exemplos prontos de código Portugol
-- Console interativo com suporte a input
+### 💾 Recursos Adicionais
+- Persistência automática no navegador
+- 7 exemplos prontos de código
+- Console interativo com input do usuário
 - Atalho Ctrl+Enter para executar
 - Interface responsiva
 
-## 🚀 Como Usar
+## 🚀 Instalação e Uso
+
+### Requisitos
+- Node.js 18+ 
+- npm ou yarn
 
 ### Instalação
 
 ```bash
-# Clone ou baixe o repositório
+# Clone o repositório
+git clone <seu-repositorio>
 cd portugol-web-editor
 
 # Instale as dependências
@@ -63,51 +70,34 @@ npm run build
 npm run preview
 ```
 
-## 📚 Exemplo de Código Suportado
+## 🎨 Tecnologias Utilizadas
 
-```portugol
-algoritmo "Calculadora Simples"
-var
-   num1, num2, resultado: real
-   operacao: caractere
-inicio
-   escreva("Digite o primeiro número: ")
-   leia(num1)
-   escreva("Digite o segundo número: ")
-   leia(num2)
-   escreva("Digite a operação (+, -, *, /): ")
-   leia(operacao)
-   
-   se operacao = "+" entao
-      resultado <- num1 + num2
-   senao
-      se operacao = "-" entao
-         resultado <- num1 - num2
-      senao
-         se operacao = "*" entao
-            resultado <- num1 * num2
-         senao
-            se operacao = "/" entao
-               resultado <- num1 / num2
-            fimse
-         fimse
-      fimse
-   fimse
-   
-   escreval("Resultado: ", resultado)
-fimalgoritmo
-```
-
-## 🛠️ Tecnologias
-
-- **React 19** - Interface moderna
-- **Vite 8** - Build ultrarrápido
-- **Monaco Editor** - Editor profissional
+- **React 19** - Biblioteca UI moderna
+- **Vite 8** - Build tool ultrarrápido
+- **Tailwind CSS 3** - Framework CSS utilitário
+- **Monaco Editor** - Editor de código profissional
+- **Lucide React** - Biblioteca de ícones
 - **html2canvas** - Captura de tela
 - **jsPDF** - Geração de PDFs
 - **docx** - Criação de documentos Word
 
 ## 📖 Sintaxe Portugol Suportada
+
+### Estrutura Básica
+```portugol
+algoritmo "Nome do Algoritmo"
+var
+   variavel: tipo
+inicio
+   // seu código aqui
+fimalgoritmo
+```
+
+### Tipos de Dados
+```
+inteiro, real, caractere, logico
+vetor[inicio..fim] de tipo
+```
 
 ### Palavras-chave
 ```
@@ -119,12 +109,6 @@ repita, fimrepita
 escreva, escreval, leia
 ```
 
-### Tipos de Dados
-```
-inteiro, real, caractere, logico
-vetor[inicio..fim] de tipo
-```
-
 ### Operadores
 ```
 Aritméticos: +, -, *, /, ^, mod
@@ -133,41 +117,66 @@ Lógicos: e, ou, nao
 Atribuição: <-
 ```
 
-## 💡 Dicas de Uso
+## 💡 Exemplo de Código
 
-1. **Executar código**: Clique em "▶ Executar" ou pressione `Ctrl+Enter`
-2. **Input do usuário**: O console mostrará um campo de input quando `leia()` for chamado
-3. **Exportar**: Clique em "📤 Exportar" e escolha o formato desejado
-4. **Exemplos**: Clique em "📄 Exemplos" para carregar códigos prontos
-5. **Salvar**: O código é salvo automaticamente no navegador
+```portugol
+algoritmo "Calculadora"
+var
+   n1, n2, resultado: real
+   op: caractere
+inicio
+   escreva("Digite o primeiro número: ")
+   leia(n1)
+   escreva("Digite o segundo número: ")
+   leia(n2)
+   escreva("Digite a operação (+, -, *, /): ")
+   leia(op)
+   
+   se op = "+" entao
+      resultado <- n1 + n2
+   senao
+      se op = "-" entao
+         resultado <- n1 - n2
+      senao
+         se op = "*" entao
+            resultado <- n1 * n2
+         senao
+            resultado <- n1 / n2
+         fimse
+      fimse
+   fimse
+   
+   escreval("Resultado: ", resultado)
+fimalgoritmo
+```
 
 ## 🎓 Casos de Uso
 
-- Aprendizado de lógica de programação
-- Prática de algoritmos em Portugol
-- Entrega de trabalhos acadêmicos (formato imagem/PDF/Word)
-- Testes rápidos de código sem instalar nada
-- Compartilhar exemplos de código
+- 📚 Aprendizado de lógica de programação
+- ✍️ Prática de algoritmos em Portugol
+- 📝 Entrega de trabalhos acadêmicos
+- 🧪 Testes rápidos sem instalação
+- 🤝 Compartilhar exemplos de código
 
-## 🐛 Limitações Conhecidas
+## ⌨️ Atalhos de Teclado
 
-- Vetores multidimensionais: suporte básico
-- Funções/procedimentos: não implementado (planejado)
-- Comentários de bloco: apenas `//` suportado
-
-## 📝 Licença
-
-MIT License - Sinta-se livre para usar em projetos acadêmicos e pessoais!
+- `Ctrl + Enter` - Executar código
+- Botão de tema - Alternar entre claro/escuro
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Algumas ideias:
+Contribuições são bem-vindas! Algumas sugestões:
 - [ ] Suporte a funções e procedimentos
-- [ ] Mais temas de cores
-- [ ] Compartilhamento via URL
 - [ ] Mais exemplos de código
-- [ ] Depurador (debugger) visual
+- [ ] Depurador visual
+- [ ] Compartilhamento via URL
+- [ ] Mais temas de cores
+
+## 📄 Licença
+
+MIT License - Livre para uso em projetos acadêmicos e pessoais.
 
 ---
 
-**Desenvolvido para facilitar o aprendizado de lógica de programação** 🚀
+**Editor Zoldyck** - Desenvolvido com ❤️ por Daniel Souza  
+Sistemas de Informação - FeMASS/2026.1

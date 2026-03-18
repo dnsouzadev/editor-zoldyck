@@ -42,7 +42,7 @@ export class Evaluator {
         return await this.evaluateBlock(node);
       
       case NodeType.VAR_DECLARATION:
-        return this.evaluateVarDeclaration(node);
+        return await this.evaluateVarDeclaration(node);
       
       case NodeType.ASSIGNMENT:
         return await this.evaluateAssignment(node);
@@ -97,21 +97,17 @@ export class Evaluator {
     }
   }
 
-  evaluateVarDeclaration(node) {
+  async evaluateVarDeclaration(node) {
     if (node.isArray) {
       // Avaliar tamanho do array
-      const start = typeof node.arraySize.start.value === 'number' 
-        ? node.arraySize.start.value 
-        : 0;
-      const end = typeof node.arraySize.end.value === 'number' 
-        ? node.arraySize.end.value 
-        : 0;
+      const start = await this.evaluateNode(node.arraySize.start);
+      const end = await this.evaluateNode(node.arraySize.end);
       
-      const size = end - start + 1;
+      const size = Math.max(0, end - start + 1);
       const array = new Array(size).fill(this.getDefaultValue(node.varType));
-      this.variables.set(node.name, { value: array, isArray: true, start });
+      this.variables.set(node.name, { value: array, isArray: true, start, type: node.varType });
     } else {
-      this.variables.set(node.name, { value: this.getDefaultValue(node.varType), isArray: false });
+      this.variables.set(node.name, { value: this.getDefaultValue(node.varType), isArray: false, type: node.varType });
     }
   }
 
@@ -221,17 +217,62 @@ export class Evaluator {
   }
 
   async evaluateReadStatement(node) {
-    for (const varName of node.variables) {
-      if (!this.variables.has(varName)) {
-        throw new Error(`Variável '${varName}' não declarada`);
+    for (const target of node.targets) {
+      const { identifier, index } = target;
+      
+      if (!this.variables.has(identifier)) {
+        throw new Error(`Variável '${identifier}' não declarada`);
       }
       
-      const input = await this.onRead(`Digite o valor para ${varName}: `);
-      const varData = this.variables.get(varName);
+      const actualIndex = index !== null ? await this.evaluateNode(index) : null;
+      const prompt = index !== null 
+        ? `Digite o valor para ${identifier}[${actualIndex}]: `
+        : `Digite o valor para ${identifier}: `;
+        
+      let input = await this.onRead(prompt);
+      const varData = this.variables.get(identifier);
+
+      // Auto-preenchimento se o input estiver vazio
+      if (input === null || input === undefined || input.trim() === '') {
+        switch (varData.type) {
+          case TokenType.INTEIRO:
+            input = Math.floor(Math.random() * 10) + 1; // 1-10
+            break;
+          case TokenType.REAL:
+            input = (Math.random() * 10).toFixed(2);
+            break;
+          case TokenType.CARACTERE:
+            input = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+            break;
+          case TokenType.LOGICO:
+            input = Math.random() > 0.5 ? 'verdadeiro' : 'falso';
+            break;
+          default:
+            input = '0';
+        }
+        this.onWrite(`[Sistema preencheu ${identifier}${index !== null ? `[${actualIndex}]` : ''} com: ${input}]`, true);
+      }
       
       // Tentar converter para número se possível
       const numValue = Number(input);
-      varData.value = isNaN(numValue) ? input : numValue;
+      const value = (isNaN(numValue) || input === '' || typeof input !== 'string') ? input : numValue;
+
+      if (index !== null) {
+        // Atribuição a array
+        if (!varData.isArray) {
+          throw new Error(`'${identifier}' não é um vetor`);
+        }
+        
+        const arrayIndex = actualIndex - varData.start;
+        if (arrayIndex < 0 || arrayIndex >= varData.value.length) {
+          throw new Error(`Índice ${actualIndex} fora dos limites do vetor '${identifier}'`);
+        }
+        
+        varData.value[arrayIndex] = value;
+      } else {
+        // Atribuição simples
+        varData.value = value;
+      }
     }
   }
 

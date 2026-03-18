@@ -88,42 +88,63 @@ export class Parser {
   }
 
   parseVarDeclaration() {
-    const identifiers = [];
-    
-    // Lista de identificadores separados por vírgula
-    identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
-    
-    while (this.match(TokenType.VIRGULA)) {
-      this.advance();
-      identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
-    }
-    
-    this.expect(TokenType.DOIS_PONTOS);
-    
-    // Tipo da variável
     let varType = null;
     let isArray = false;
     let arraySize = null;
-    
-    // Verificar se é vetor
-    if (this.match(TokenType.VETOR)) {
-      this.advance();
-      this.expect(TokenType.ABRE_COLCHETE);
-      // Suporta apenas tamanho fixo por enquanto
-      const start = this.parseExpression();
-      this.expect(TokenType.PONTO_PONTO);
-      const end = this.parseExpression();
-      this.expect(TokenType.FECHA_COLCHETE);
-      this.expect(TokenType.DE);
-      isArray = true;
-      arraySize = { start, end };
-    }
-    
-    if (this.match(TokenType.INTEIRO, TokenType.REAL, TokenType.CARACTERE, TokenType.LOGICO)) {
+    const identifiers = [];
+
+    // Sintaxe 1: tipo id1, id2... (ex: inteiro a, b, c)
+    if (this.match(TokenType.INTEIRO, TokenType.REAL, TokenType.CARACTERE, TokenType.LOGICO, TokenType.VETOR)) {
+      if (this.match(TokenType.VETOR)) {
+        this.advance();
+        this.expect(TokenType.ABRE_COLCHETE);
+        const start = this.parseExpression();
+        this.expect(TokenType.PONTO_PONTO);
+        const end = this.parseExpression();
+        this.expect(TokenType.FECHA_COLCHETE);
+        this.expect(TokenType.DE);
+        isArray = true;
+        arraySize = { start, end };
+      }
+      
       varType = this.currentToken.type;
       this.advance();
-    } else {
-      throw new Error(`Tipo de variável esperado na linha ${this.currentToken.line}`);
+
+      // Lista de identificadores
+      identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
+      while (this.match(TokenType.VIRGULA)) {
+        this.advance();
+        identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
+      }
+    } 
+    // Sintaxe 2: id1, id2... : tipo (ex: a, b, c: inteiro)
+    else {
+      identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
+      while (this.match(TokenType.VIRGULA)) {
+        this.advance();
+        identifiers.push(this.expect(TokenType.IDENTIFICADOR).value);
+      }
+      
+      this.expect(TokenType.DOIS_PONTOS);
+      
+      if (this.match(TokenType.VETOR)) {
+        this.advance();
+        this.expect(TokenType.ABRE_COLCHETE);
+        const start = this.parseExpression();
+        this.expect(TokenType.PONTO_PONTO);
+        const end = this.parseExpression();
+        this.expect(TokenType.FECHA_COLCHETE);
+        this.expect(TokenType.DE);
+        isArray = true;
+        arraySize = { start, end };
+      }
+      
+      if (this.match(TokenType.INTEIRO, TokenType.REAL, TokenType.CARACTERE, TokenType.LOGICO)) {
+        varType = this.currentToken.type;
+        this.advance();
+      } else {
+        throw new Error(`Tipo de variável esperado na linha ${this.currentToken.line}`);
+      }
     }
     
     // Criar declarações para cada identificador
@@ -137,15 +158,35 @@ export class Parser {
   }
 
   parseBody() {
-    this.expect(TokenType.INICIO);
+    let useBraces = false;
+    if (this.match(TokenType.INICIO)) {
+      this.advance();
+      if (this.match(TokenType.ABRE_CHAVE)) {
+        this.advance();
+        useBraces = true;
+      }
+    } else if (this.match(TokenType.ABRE_CHAVE)) {
+      this.advance();
+      useBraces = true;
+    } else {
+      this.expect(TokenType.INICIO);
+    }
+
     const statements = this.parseStatements();
     
-    if (this.match(TokenType.FIMALGORITMO)) {
-      this.advance();
-    } else {
-      this.expect(TokenType.FIM);
-      if (this.match(TokenType.ALGORITMO)) {
+    if (useBraces) {
+      this.expect(TokenType.FECHA_CHAVE);
+      if (this.match(TokenType.FIMALGORITMO)) {
         this.advance();
+      }
+    } else {
+      if (this.match(TokenType.FIMALGORITMO)) {
+        this.advance();
+      } else {
+        this.expect(TokenType.FIM);
+        if (this.match(TokenType.ALGORITMO)) {
+          this.advance();
+        }
       }
     }
     
@@ -158,11 +199,17 @@ export class Parser {
   parseStatements() {
     const statements = [];
     
-    while (!this.match(TokenType.FIM, TokenType.FIMALGORITMO, TokenType.FIMSE, 
-                        TokenType.FIMENQUANTO, TokenType.FIMPARA, TokenType.ATE, TokenType.EOF)) {
+    while (!this.match(TokenType.FIM, TokenType.FIMALGORITMO, TokenType.FIMSE, TokenType.SENAO, 
+                        TokenType.FIMENQUANTO, TokenType.FIMPARA, TokenType.ATE, 
+                        TokenType.FECHA_CHAVE, TokenType.EOF)) {
       const stmt = this.parseStatement();
       if (stmt) {
         statements.push(stmt);
+      } else {
+        throw new Error(
+          `Comando inválido ou inesperado: '${this.currentToken.value || this.currentToken.type}' ` +
+          `na linha ${this.currentToken.line}, coluna ${this.currentToken.column}`
+        );
       }
     }
     
@@ -209,6 +256,19 @@ export class Parser {
   }
 
   parseAssignment() {
+    const lvalue = this.parseLValue();
+    this.expect(TokenType.ATRIBUICAO);
+    const value = this.parseExpression();
+    
+    return {
+      type: NodeType.ASSIGNMENT,
+      identifier: lvalue.identifier,
+      index: lvalue.index,
+      value,
+    };
+  }
+
+  parseLValue() {
     const identifier = this.expect(TokenType.IDENTIFICADOR).value;
     
     // Pode ser acesso a array
@@ -219,47 +279,90 @@ export class Parser {
       this.expect(TokenType.FECHA_COLCHETE);
     }
     
-    this.expect(TokenType.ATRIBUICAO);
-    const value = this.parseExpression();
-    
-    return {
-      type: NodeType.ASSIGNMENT,
-      identifier,
-      index,
-      value,
-    };
+    return { identifier, index };
   }
 
   parseIfStatement() {
     this.expect(TokenType.SE);
     const condition = this.parseExpression();
-    this.expect(TokenType.ENTAO);
     
-    const thenBlock = this.parseStatements();
+    let useBraces = false;
+    if (this.match(TokenType.ENTAO)) {
+      this.advance();
+      if (this.match(TokenType.ABRE_CHAVE)) {
+        this.advance();
+        useBraces = true;
+      }
+    } else if (this.match(TokenType.ABRE_CHAVE)) {
+      this.advance();
+      useBraces = true;
+    } else {
+      this.expect(TokenType.ENTAO);
+    }
+    
+    const thenStatements = this.parseStatements();
+    if (useBraces) {
+      this.expect(TokenType.FECHA_CHAVE);
+    }
     
     let elseBlock = null;
     if (this.match(TokenType.SENAO)) {
       this.advance();
-      elseBlock = this.parseStatements();
+      
+      let useBracesElse = false;
+      if (this.match(TokenType.ABRE_CHAVE)) {
+        this.advance();
+        useBracesElse = true;
+      }
+      
+      const elseStatements = this.parseStatements();
+      if (useBracesElse) {
+        this.expect(TokenType.FECHA_CHAVE);
+      }
+      
+      elseBlock = { type: NodeType.BLOCK, statements: elseStatements };
     }
     
-    this.expect(TokenType.FIMSE);
+    if (!useBraces) {
+      this.expect(TokenType.FIMSE);
+    } else if (this.match(TokenType.FIMSE)) {
+      this.advance();
+    }
     
     return {
       type: NodeType.IF_STATEMENT,
       condition,
-      thenBlock: { type: NodeType.BLOCK, statements: thenBlock },
-      elseBlock: elseBlock ? { type: NodeType.BLOCK, statements: elseBlock } : null,
+      thenBlock: { type: NodeType.BLOCK, statements: thenStatements },
+      elseBlock: elseBlock,
     };
   }
 
   parseWhileStatement() {
     this.expect(TokenType.ENQUANTO);
     const condition = this.parseExpression();
-    this.expect(TokenType.FACA);
+    
+    let useBraces = false;
+    if (this.match(TokenType.FACA)) {
+      this.advance();
+      if (this.match(TokenType.ABRE_CHAVE)) {
+        this.advance();
+        useBraces = true;
+      }
+    } else if (this.match(TokenType.ABRE_CHAVE)) {
+      this.advance();
+      useBraces = true;
+    } else {
+      this.expect(TokenType.FACA);
+    }
     
     const body = this.parseStatements();
-    this.expect(TokenType.FIMENQUANTO);
+    
+    if (useBraces) {
+      this.expect(TokenType.FECHA_CHAVE);
+      if (this.match(TokenType.FIMENQUANTO)) this.advance();
+    } else {
+      this.expect(TokenType.FIMENQUANTO);
+    }
     
     return {
       type: NodeType.WHILE_STATEMENT,
@@ -282,9 +385,28 @@ export class Parser {
       step = this.parseExpression();
     }
     
-    this.expect(TokenType.FACA);
+    let useBraces = false;
+    if (this.match(TokenType.FACA)) {
+      this.advance();
+      if (this.match(TokenType.ABRE_CHAVE)) {
+        this.advance();
+        useBraces = true;
+      }
+    } else if (this.match(TokenType.ABRE_CHAVE)) {
+      this.advance();
+      useBraces = true;
+    } else {
+      this.expect(TokenType.FACA);
+    }
+    
     const body = this.parseStatements();
-    this.expect(TokenType.FIMPARA);
+    
+    if (useBraces) {
+      this.expect(TokenType.FECHA_CHAVE);
+      if (this.match(TokenType.FIMPARA)) this.advance();
+    } else {
+      this.expect(TokenType.FIMPARA);
+    }
     
     return {
       type: NodeType.FOR_STATEMENT,
@@ -298,7 +420,19 @@ export class Parser {
 
   parseRepeatStatement() {
     this.expect(TokenType.REPITA);
+    
+    let useBraces = false;
+    if (this.match(TokenType.ABRE_CHAVE)) {
+      this.advance();
+      useBraces = true;
+    }
+    
     const body = this.parseStatements();
+    
+    if (useBraces) {
+      this.expect(TokenType.FECHA_CHAVE);
+    }
+    
     this.expect(TokenType.ATE);
     const condition = this.parseExpression();
     
@@ -338,19 +472,19 @@ export class Parser {
     this.expect(TokenType.LEIA);
     this.expect(TokenType.ABRE_PAREN);
     
-    const variables = [];
-    variables.push(this.expect(TokenType.IDENTIFICADOR).value);
+    const targets = [];
+    targets.push(this.parseLValue());
     
     while (this.match(TokenType.VIRGULA)) {
       this.advance();
-      variables.push(this.expect(TokenType.IDENTIFICADOR).value);
+      targets.push(this.parseLValue());
     }
     
     this.expect(TokenType.FECHA_PAREN);
     
     return {
       type: NodeType.READ_STATEMENT,
-      variables,
+      targets,
     };
   }
 

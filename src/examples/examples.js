@@ -155,6 +155,30 @@ inicio
    escreval("FIM!")
 fimalgoritmo`
   },
+
+  fibonacci: {
+    name: 'Sequência de Fibonacci',
+    code: `algoritmo "fibonacci"
+var
+   inteiro m, i, a, b, c
+inicio
+   escreva("Quantos termos da sequência de Fibonacci deseja ver? ")
+   leia(m)
+   
+   a <- 0
+   b <- 1
+
+   escreval("")
+   escreval("Sequência:")
+   para i de 1 ate m faca
+      escreva(a, " ")
+      c <- a + b
+      a <- b
+      b <- c
+   fimpara
+   escreval("")
+fimalgoritmo`
+  },
 };
 
 export function getExamplesList() {

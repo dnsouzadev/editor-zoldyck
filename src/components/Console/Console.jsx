@@ -53,11 +53,11 @@ const Console = forwardRef(({ onInput }, ref) => {
   };
 
   return (
-    <div className="h-full bg-muted/30 p-3 overflow-y-auto font-mono text-sm">
+    <div className="h-full bg-muted/30 p-3 overflow-y-auto font-mono text-xs md:text-sm">
       <div className="flex flex-col gap-0.5">
         {output.map((item, index) => (
           <div key={index} className={cn(
-            "leading-relaxed",
+            "leading-relaxed break-words whitespace-pre-wrap",
             item.type === 'error' && "text-destructive font-semibold",
             item.type === 'input' && "text-primary",
             item.type === 'output' && "text-foreground"
@@ -67,12 +67,12 @@ const Console = forwardRef(({ onInput }, ref) => {
           </div>
         ))}
         {isWaitingInput && (
-          <form onSubmit={handleInputSubmit} className="flex items-center gap-2 mt-1">
-            <span className="text-muted-foreground">{inputPrompt}</span>
+          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-1">
+            <span className="text-muted-foreground shrink-0">{inputPrompt}</span>
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 bg-background border border-input px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 min-w-[120px] bg-background border border-input px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-ring text-sm"
               autoFocus
             />
           </form>
