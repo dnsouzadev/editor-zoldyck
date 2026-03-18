@@ -186,12 +186,18 @@ export default function Editor({ code, onChange }) {
       options={{
         minimap: { enabled: false },
         fontSize: 14,
+        fontFamily: "'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace",
+        fontLigatures: true,
         lineNumbers: 'on',
         roundedSelection: true,
         scrollBeyondLastLine: false,
         automaticLayout: true,
         tabSize: 2,
         wordWrap: 'on',
+        padding: { top: 12, bottom: 12 },
+        cursorBlinking: 'smooth',
+        cursorSmoothCaretAnimation: 'on',
+        smoothScrolling: true,
       }}
     />
   );

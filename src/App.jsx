@@ -100,18 +100,13 @@ function AppContent() {
     const match = code.match(/algoritmo\s+["'](.+?)["']/i);
     const algorithmName = match ? match[1] : 'codigo';
 
-    // Se for mobile e o formato for PNG, tentar usar o Share API
     if (isMobile && format === 'png' && navigator.share) {
       try {
-        const result = await exportToImage(code, algorithmName);
-        if (result.success) {
-          // No mobile, a exportação gera o download, mas poderíamos tentar compartilhar o texto se preferir
-          await navigator.share({
-            title: 'Código Portugol - ' + algorithmName,
-            text: code,
-          });
-          return;
-        }
+        await navigator.share({
+          title: 'Código Portugol - ' + algorithmName,
+          text: code,
+        });
+        return;
       } catch (e) {}
     }
 
@@ -136,21 +131,26 @@ function AppContent() {
   };
 
   return (
-    <div className="flex flex-col bg-background w-full overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
-      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-1.5 md:py-3 shadow-lg flex flex-row justify-between items-center shrink-0">
-        <div className="flex items-center gap-2">
-          <Code2 className="w-5 h-5 md:w-8 md:h-8" />
+    <div className="flex flex-col bg-background w-full overflow-hidden font-mono" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
+      <header className="bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground px-4 md:px-6 py-3 md:py-4 shadow-xl flex flex-col md:flex-row justify-between items-center gap-2 shrink-0 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE4YzAtMy4zMTQgMi42ODYtNiA2LTZzNiAyLjY4NiA2IDYtMi42ODYgNi02IDYtNi0yLjY4Ni02LTZ6TTAgMThjMC0zLjMxNCAyLjY4Ni02IDYtNnM2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNnptMTggMzZjMC0zLjMxNCAyLjY4Ni02IDYtNnM2IDIuNjg2IDYgNi0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="flex items-center gap-3 z-10">
+          <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg">
+            <Code2 className="w-6 h-6 md:w-7 md:h-7 drop-shadow-md" />
+          </div>
           <div>
-            <h1 className="text-sm md:text-2xl font-bold leading-tight">Editor Zoldyck</h1>
-            <p className="hidden md:block text-sm opacity-90 leading-tight">Interpretador Portugol</p>
+            <h1 className="text-xl md:text-3xl font-bold leading-tight tracking-tight drop-shadow-md">Editor Zoldyck</h1>
+            <p className="text-xs md:text-sm opacity-95 leading-tight font-medium">Interpretador Portugol</p>
           </div>
         </div>
-        <div className="flex flex-col items-end">
-          <p className="text-[8px] md:text-xs opacity-75 hidden sm:block">Daniel Souza - SI FeMASS 2026.1</p>
+        <div className="text-center md:text-right z-10">
+          <p className="text-[10px] md:text-xs opacity-90 hidden md:block font-medium mb-1">
+            Daniel Souza • SI FeMASS 2026.1
+          </p>
           {visitorCount !== null && (
-            <div className="inline-flex items-center gap-1.5 bg-black/20 px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-mono border border-white/10 shadow-inner">
-              <span className="w-1 h-1 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
-              {visitorCount.toLocaleString()}
+            <div className="inline-flex items-center gap-2 bg-black/25 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] md:text-xs font-mono border border-white/20 shadow-lg">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
+              <span className="font-semibold">Acessos:</span> {visitorCount.toLocaleString()}
             </div>
           )}
         </div>
@@ -158,20 +158,26 @@ function AppContent() {
 
       <Toolbar onRun={handleRun} onClear={() => consoleRef.current?.clear()} onExport={() => setShowExportMenu(true)} onLoadExample={() => setShowExamplesModal(true)} isRunning={isRunning} />
 
-      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0 relative">
-        <div className="flex flex-col border-b md:border-b-0 md:border-r border-border h-1/2 md:h-full overflow-hidden">
-          <div className="bg-muted px-4 py-0.5 text-[9px] md:text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
-            <span>Editor</span>
-            <span className="hidden md:inline opacity-50 font-normal">Ctrl+Enter para rodar</span>
+      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0 relative bg-muted/20">
+        <div className="flex flex-col border-b md:border-b-0 md:border-r border-border/50 h-1/2 md:h-full overflow-hidden bg-background/50 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-muted/80 to-muted/60 px-4 py-2 text-xs md:text-sm font-semibold border-b border-border/50 flex justify-between items-center shrink-0 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></div>
+              <span className="text-foreground/90">Editor</span>
+            </div>
+            <span className="hidden md:inline opacity-60 font-normal text-xs">Ctrl+Enter para rodar</span>
           </div>
           <div className="flex-1 relative overflow-hidden">
             <Editor code={code} onChange={setCode} />
           </div>
         </div>
 
-        <div className="flex flex-col h-1/2 md:h-full overflow-hidden">
-          <div className="bg-muted px-4 py-0.5 text-[9px] md:text-sm font-medium border-b border-border shrink-0">
-            Console
+        <div className="flex flex-col h-1/2 md:h-full overflow-hidden bg-background/50 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-muted/60 to-muted/80 px-4 py-2 text-xs md:text-sm font-semibold border-b border-border/50 shrink-0 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]"></div>
+              <span className="text-foreground/90">Console</span>
+            </div>
           </div>
           <div className="flex-1 relative overflow-hidden">
             <Console ref={consoleRef} />
@@ -182,8 +188,8 @@ function AppContent() {
       {showExportMenu && <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />}
       {showExamplesModal && <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />}
 
-      <footer className="bg-muted/50 border-t border-border py-1 px-4 flex justify-center items-center shrink-0">
-        <button onClick={() => window.open('https://papertoilet.com/', '_blank')} className="text-[8px] text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+      <footer className="bg-gradient-to-r from-muted/70 to-muted/50 border-t border-border/50 py-2 px-4 flex justify-center items-center shrink-0 backdrop-blur-sm">
+        <button onClick={() => window.open('https://papertoilet.com/', '_blank')} className="text-[9px] md:text-[10px] text-muted-foreground hover:text-primary transition-all hover:scale-105 cursor-pointer font-medium">
           Professor Afonso pediu para você clicar aqui
         </button>
       </footer>

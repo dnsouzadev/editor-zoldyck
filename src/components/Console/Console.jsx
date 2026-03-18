@@ -53,26 +53,26 @@ const Console = forwardRef(({ onInput }, ref) => {
   };
 
   return (
-    <div className="h-full bg-muted/30 p-3 overflow-y-auto font-mono text-xs md:text-sm">
-      <div className="flex flex-col gap-0.5">
+    <div className="h-full bg-gradient-to-br from-muted/40 via-muted/30 to-background/50 p-4 overflow-y-auto font-mono text-xs md:text-sm backdrop-blur-sm">
+      <div className="flex flex-col gap-1">
         {output.map((item, index) => (
           <div key={index} className={cn(
-            "leading-relaxed break-words whitespace-pre-wrap",
-            item.type === 'error' && "text-destructive font-semibold",
-            item.type === 'input' && "text-primary",
-            item.type === 'output' && "text-foreground"
+            "leading-relaxed break-words whitespace-pre-wrap px-1 py-0.5 rounded transition-colors",
+            item.type === 'error' && "text-destructive font-semibold bg-destructive/5 border-l-2 border-destructive pl-2",
+            item.type === 'input' && "text-primary font-medium bg-primary/5 border-l-2 border-primary pl-2",
+            item.type === 'output' && "text-foreground/95"
           )}>
             {item.text}
             {item.newLine !== false && <br />}
           </div>
         ))}
         {isWaitingInput && (
-          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-1">
-            <span className="text-muted-foreground shrink-0">{inputPrompt}</span>
+          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-2 bg-accent/10 p-2 rounded-lg border border-accent/20">
+            <span className="text-muted-foreground shrink-0 font-medium">{inputPrompt}</span>
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 min-w-[120px] bg-background border border-input px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+              className="flex-1 min-w-[120px] bg-background/80 border border-input px-3 py-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm font-mono transition-all"
               autoFocus
             />
           </form>
