@@ -206,10 +206,14 @@ function AppContent() {
 
   const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
 
+  const containerHeightStyle = isMobile
+    ? { minHeight: 'calc(var(--vh, 1vh) * 100)' }
+    : { height: 'calc(var(--vh, 1vh) * 100)' };
+
   return (
     <div
-      className="flex flex-col bg-background text-foreground w-full overflow-hidden font-mono"
-      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+      className={`flex flex-col bg-background text-foreground w-full font-mono ${isMobile ? 'overflow-auto' : 'overflow-hidden'}`}
+      style={containerHeightStyle}
     >
       <header className="border-b-2 border-border px-4 md:px-8 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -309,7 +313,6 @@ function AppContent() {
         >
           Professor Afonso pediu para você clicar aqui
         </button>
-        <span className="text-muted-foreground">Edição brutalista · Monoespaçada</span>
       </footer>
     </div>
   );

@@ -189,6 +189,7 @@ export default function Editor({ code, onChange }) {
         fontFamily: "'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace",
         fontLigatures: true,
         lineNumbers: 'on',
+        lineNumbersMinChars: 2,
         roundedSelection: true,
         scrollBeyondLastLine: false,
         automaticLayout: true,
@@ -198,6 +199,9 @@ export default function Editor({ code, onChange }) {
         cursorBlinking: 'smooth',
         cursorSmoothCaretAnimation: 'on',
         smoothScrolling: true,
+        glyphMargin: false,
+        folding: false,
+        lineDecorationsWidth: 0,
       }}
     />
   );

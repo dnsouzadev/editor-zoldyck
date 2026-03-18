@@ -6,12 +6,24 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   width: 100%;
   font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 @layer base {
+  @media (min-width: 768px) {
+    html, body, #root {
+      overflow: hidden;
+    }
+  }
+
+  @media (max-width: 767px) {
+    html, body, #root {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
   :root {
     --background: 0 0% 98%;
     --foreground: 0 0% 7%;
@@ -64,6 +76,26 @@ html, body, #root {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer base {
+  .monaco-editor .margin {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    width: auto !important;
+  }
+  .monaco-editor .margin .line-numbers {
+    font-size: 11px !important;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 767px) {
+    .monaco-editor,
+    .monaco-editor .overflow-guard,
+    .monaco-editor .monaco-scrollable-element {
+      touch-action: pan-y !important;
+    }
   }
 }
 
