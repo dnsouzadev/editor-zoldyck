@@ -40,6 +40,16 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, [code]);
 
+  // Fix para altura real no mobile
+  useEffect(() => {
+    const setAppHeight = () => {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+    window.addEventListener('resize', setAppHeight);
+    setAppHeight();
+    return () => window.removeEventListener('resize', setAppHeight);
+  }, []);
+
   // Contador de visitas global
   useEffect(() => {
     fetch('https://api.counterapi.dev/v1/zoldyck-editor-daniel-v3/visits/increment')
@@ -139,8 +149,8 @@ function AppContent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-2 md:py-4 shadow-lg flex flex-col md:flex-row justify-between items-center gap-1 md:gap-4">
+    <div className="flex flex-col bg-background overflow-x-hidden" style={{ height: 'var(--app-height, 100vh)' }}>
+      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-2 md:py-4 shadow-lg flex flex-col md:flex-row justify-between items-center gap-1 md:gap-4 shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
           <Code2 className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
           <div>
@@ -169,22 +179,22 @@ function AppContent() {
         isRunning={isRunning}
       />
 
-      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden">
-        <div className="flex flex-col border-r border-border h-[50vh] md:h-full">
+      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0">
+        <div className="flex flex-col border-r border-border h-[50%] md:h-full">
           <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
             <span>Editor de Código</span>
             <span className="hidden md:inline text-[10px] opacity-50 font-normal">Pressione Ctrl+Enter para rodar</span>
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
             <Editor code={code} onChange={setCode} />
           </div>
         </div>
 
-        <div className="flex flex-col h-[40vh] md:h-full">
+        <div className="flex flex-col h-[50%] md:h-full border-t md:border-t-0 border-border">
           <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border shrink-0">
             Console de Saída
           </div>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
             <Console ref={consoleRef} />
           </div>
         </div>
@@ -204,10 +214,10 @@ function AppContent() {
         />
       )}
 
-      <footer className="bg-muted border-t border-border py-1.5 px-6 flex justify-center items-center shrink-0 mt-auto">
+      <footer className="bg-muted border-t border-border py-1 px-6 flex justify-center items-center shrink-0">
         <button 
           onClick={handleRandomRedirect}
-          className="text-[10px] text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2 group"
+          className="text-[9px] md:text-[10px] text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2 group"
         >
           <span className="w-1 h-1 bg-primary/40 rounded-full group-hover:scale-125 transition-transform"></span>
           Professor Afonso pediu para você clicar aqui

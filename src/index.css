@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+html, body, #root {
+  height: 100%;
+  height: var(--app-height, 100%);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
