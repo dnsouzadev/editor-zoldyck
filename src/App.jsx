@@ -214,8 +214,16 @@ function AppContent() {
       <header className="border-b-2 border-border px-4 md:px-8 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center rounded-sm bg-card">
-              <Code2 className="w-6 h-6" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center rounded-sm bg-card">
+                <Code2 className="w-6 h-6" />
+              </div>
+              <img
+                src="/capivara.png"
+                alt="Mascote Capivara"
+                className="w-12 h-12 object-contain border-2 border-foreground rounded-sm bg-card"
+                loading="lazy"
+              />
             </div>
             <div className="space-y-1">
               <p className="uppercase text-[10px] tracking-[0.35em] text-muted-foreground">Portugol</p>

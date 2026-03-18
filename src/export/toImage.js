@@ -2,6 +2,7 @@
 import html2canvas from 'html2canvas';
 
 export async function exportToImage(code, algorithmName = 'algoritmo') {
+  const siteUrl = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://editor-zoldyck.app';
   // Criar elemento temporário com o código
   const container = document.createElement('div');
   container.style.cssText = `
@@ -31,6 +32,9 @@ export async function exportToImage(code, algorithmName = 'algoritmo') {
     </div>
     <div style="font-size: 12px; color: #858585;">
       ${algorithmName} • ${new Date().toLocaleDateString('pt-BR')}
+    </div>
+    <div style="font-size: 11px; color: #a5a5a5; margin-top: 6px;">
+      ${siteUrl}
     </div>
   `;
 

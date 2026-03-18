@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export async function exportToPDF(code, algorithmName = 'algoritmo') {
+  const siteUrl = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://editor-zoldyck.app';
   // Criar elemento temporário com o código
   const container = document.createElement('div');
   container.style.cssText = `
@@ -36,7 +37,8 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
         month: 'long', 
         year: 'numeric' 
       })}<br>
-      Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1
+      Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1<br>
+      URL: ${siteUrl}
     </div>
   `;
 
