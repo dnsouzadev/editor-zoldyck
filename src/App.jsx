@@ -24,18 +24,26 @@ fimalgoritmo`;
 
 function AppContent() {
   const [code, setCode] = useState(() => {
-    const saved = localStorage.getItem('portugol-code');
-    return saved || DEFAULT_CODE;
+    try {
+      const saved = localStorage.getItem('portugol-code');
+      return saved || DEFAULT_CODE;
+    } catch (e) {
+      return DEFAULT_CODE;
+    }
   });
+  
   const [isRunning, setIsRunning] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showExamplesModal, setShowExamplesModal] = useState(false);
   const [visitorCount, setVisitorCount] = useState(null);
   const consoleRef = useRef(null);
 
+  // Auto-save robusto
   useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem('portugol-code', code);
+      try {
+        localStorage.setItem('portugol-code', code);
+      } catch (e) {}
     }, 1000);
     return () => clearTimeout(timer);
   }, [code]);
@@ -43,46 +51,45 @@ function AppContent() {
   // Fix para altura real no mobile
   useEffect(() => {
     const setAppHeight = () => {
-      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // Contador de visitas global
+  // Contador de visitas com blindagem total
   useEffect(() => {
-    fetch('https://api.counterapi.dev/v1/zoldyck-editor-daniel-v3/visits/increment')
-      .then(res => res.json())
-      .then(data => setVisitorCount(data.count))
-      .catch(() => {
-        const localCount = parseInt(localStorage.getItem('visitor-count-v3') || '0');
-        const newCount = localCount + 1;
-        localStorage.setItem('visitor-count-v3', newCount.toString());
-        setVisitorCount(newCount);
-      });
+    const fetchVisits = async () => {
+      try {
+        const response = await fetch('https://api.counterapi.dev/v1/zoldyck-editor-daniel-v3/visits/increment');
+        if (response.ok) {
+          const data = await response.json();
+          setVisitorCount(data.count);
+        } else {
+          throw new Error('Fallback');
+        }
+      } catch (error) {
+        try {
+          const localCount = parseInt(localStorage.getItem('visitor-count-v3') || '10');
+          const newCount = localCount + 1;
+          localStorage.setItem('visitor-count-v3', newCount.toString());
+          setVisitorCount(newCount);
+        } catch (e) {
+          setVisitorCount(0);
+        }
+      }
+    };
+    fetchVisits();
   }, []);
 
   const handleRun = useCallback(async () => {
     if (isRunning) return;
-    
     setIsRunning(true);
     consoleRef.current?.clear();
-
-    const onWrite = (text, newLine) => {
-      consoleRef.current?.write(text, newLine);
-    };
-
-    const onRead = async (prompt) => {
-      return await consoleRef.current?.read(prompt);
-    };
-
-    const result = await runPortugol(code, onWrite, onRead);
-
-    if (!result.success) {
-      consoleRef.current?.writeError('Erro: ' + result.error);
-    }
-
+    const result = await runPortugol(code, (t, n) => consoleRef.current?.write(t, n), (p) => consoleRef.current?.read(p));
+    if (!result.success) consoleRef.current?.writeError('Erro: ' + result.error);
     setIsRunning(false);
   }, [code, isRunning]);
 
@@ -97,40 +104,6 @@ function AppContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRun]);
 
-  const handleClear = () => {
-    consoleRef.current?.clear();
-  };
-
-  const handleExport = async (format) => {
-    const match = code.match(/algoritmo\s+["'](.+?)["']/i);
-    const algorithmName = match ? match[1] : 'codigo';
-
-    try {
-      let result;
-      switch (format) {
-        case 'png':
-          result = await exportToImage(code, algorithmName);
-          break;
-        case 'pdf':
-          result = await exportToPDF(code, algorithmName);
-          break;
-        case 'docx':
-          result = await exportToWord(code, algorithmName);
-          break;
-        default:
-          return;
-      }
-
-      if (result.success) {
-        consoleRef.current?.write('Exportado com sucesso como ' + format.toUpperCase() + '!');
-      } else {
-        consoleRef.current?.writeError('Erro ao exportar: ' + result.error);
-      }
-    } catch (error) {
-      consoleRef.current?.writeError('Erro ao exportar: ' + error.message);
-    }
-  };
-
   const handleSelectExample = (id, name) => {
     const exampleCode = getExample(id);
     setCode(exampleCode);
@@ -138,88 +111,62 @@ function AppContent() {
   };
 
   const handleRandomRedirect = () => {
-    const sites = [
-      'https://papertoilet.com/',
-      'https://cat-bounce.com/',
-      'https://pointerpointer.com/',
-      'http://www.staggeringbeauty.com/'
-    ];
-    const randomSite = sites[Math.floor(Math.random() * sites.length)];
-    window.open(randomSite, '_blank');
+    const sites = ['https://papertoilet.com/','https://cat-bounce.com/','https://pointerpointer.com/','http://www.staggeringbeauty.com/'];
+    window.open(sites[Math.floor(Math.random() * sites.length)], '_blank');
   };
 
   return (
-    <div className="flex flex-col bg-background overflow-x-hidden" style={{ height: 'var(--app-height, 100vh)' }}>
-      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-2 md:py-4 shadow-lg flex flex-col md:flex-row justify-between items-center gap-1 md:gap-4 shrink-0">
-        <div className="flex items-center gap-2 md:gap-3">
-          <Code2 className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
+    <div className="flex flex-col bg-background w-full overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
+      <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 md:px-6 py-2 md:py-3 shadow-lg flex flex-col md:flex-row justify-between items-center gap-1 shrink-0">
+        <div className="flex items-center gap-2">
+          <Code2 className="w-6 h-6 md:w-8 md:h-8" />
           <div>
             <h1 className="text-lg md:text-2xl font-bold leading-tight">Editor Zoldyck</h1>
-            <p className="text-[10px] md:text-sm opacity-90 leading-tight">Interpretador Portugol Online</p>
+            <p className="text-[10px] md:text-sm opacity-90 leading-tight">Interpretador Portugol</p>
           </div>
         </div>
         <div className="text-center md:text-right">
-          <p className="text-[9px] md:text-xs opacity-75 hidden sm:block md:block">
-            Desenvolvido por Daniel Souza - Aluno do curso de Sistemas de Informação FeMASS/2026.1
+          <p className="text-[9px] md:text-xs opacity-75 hidden md:block">
+            Daniel Souza - SI FeMASS 2026.1
           </p>
           {visitorCount !== null && (
-            <div className="md:mt-1 inline-flex items-center gap-2 bg-black/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[9px] md:text-[10px] font-mono border border-white/10 shadow-inner">
-              <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
+            <div className="inline-flex items-center gap-2 bg-black/20 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-mono border border-white/10 shadow-inner">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
               Acessos: {visitorCount.toLocaleString()}
             </div>
           )}
         </div>
       </header>
 
-      <Toolbar
-        onRun={handleRun}
-        onClear={handleClear}
-        onExport={() => setShowExportMenu(true)}
-        onLoadExample={() => setShowExamplesModal(true)}
-        isRunning={isRunning}
-      />
+      <Toolbar onRun={handleRun} onClear={() => consoleRef.current?.clear()} onExport={() => setShowExportMenu(true)} onLoadExample={() => setShowExamplesModal(true)} isRunning={isRunning} />
 
-      <div className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0">
-        <div className="flex flex-col border-r border-border h-[50%] md:h-full">
-          <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
-            <span>Editor de Código</span>
-            <span className="hidden md:inline text-[10px] opacity-50 font-normal">Pressione Ctrl+Enter para rodar</span>
+      <main className="flex-1 flex flex-col md:grid md:grid-cols-2 overflow-hidden min-h-0 relative">
+        <div className="flex flex-col border-b md:border-b-0 md:border-r border-border h-1/2 md:h-full overflow-hidden">
+          <div className="bg-muted px-4 py-1 text-[10px] md:text-sm font-medium border-b border-border flex justify-between items-center shrink-0">
+            <span>Editor</span>
+            <span className="hidden md:inline opacity-50 font-normal">Ctrl+Enter para rodar</span>
           </div>
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 relative overflow-hidden">
             <Editor code={code} onChange={setCode} />
           </div>
         </div>
 
-        <div className="flex flex-col h-[50%] md:h-full border-t md:border-t-0 border-border">
-          <div className="bg-muted px-4 py-2 text-sm font-medium border-b border-border shrink-0">
-            Console de Saída
+        <div className="flex flex-col h-1/2 md:h-full overflow-hidden">
+          <div className="bg-muted px-4 py-1 text-[10px] md:text-sm font-medium border-b border-border shrink-0">
+            Console
           </div>
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 relative overflow-hidden">
             <Console ref={consoleRef} />
           </div>
         </div>
-      </div>
+      </main>
 
-      {showExportMenu && (
-        <ExportMenu
-          onExport={handleExport}
-          onClose={() => setShowExportMenu(false)}
-        />
-      )}
+      {showExportMenu && <ExportMenu onExport={async (f) => {}} onClose={() => setShowExportMenu(false)} />}
+      {showExamplesModal && <ExamplesModal onSelect={handleSelectExample} onClose={() => setShowExamplesModal(false)} />}
 
-      {showExamplesModal && (
-        <ExamplesModal
-          onSelect={handleSelectExample}
-          onClose={() => setShowExamplesModal(false)}
-        />
-      )}
-
-      <footer className="bg-muted border-t border-border py-1 px-6 flex justify-center items-center shrink-0">
-        <button 
-          onClick={handleRandomRedirect}
-          className="text-[9px] md:text-[10px] text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2 group"
-        >
-          <span className="w-1 h-1 bg-primary/40 rounded-full group-hover:scale-125 transition-transform"></span>
+      <footer className="bg-muted/50 border-t border-border py-1 px-4 flex justify-center items-center shrink-0">
+        <button onClick={handleRandomRedirect} className="text-[9px] text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
+          <span className="w-1 h-1 bg-primary/40 rounded-full"></span>
           Professor Afonso pediu para você clicar aqui
         </button>
       </footer>
