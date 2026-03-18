@@ -1,0 +1,143 @@
+.export-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.export-modal {
+  background-color: #252526;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.2s;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.export-modal h2 {
+  color: #d4d4d4;
+  margin: 0 0 20px 0;
+  font-size: 20px;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: #2d2d30;
+  border: 2px solid #3e3e42;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-option:hover {
+  border-color: #505050;
+  background-color: #363637;
+}
+
+.export-option input[type="radio"] {
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.export-option input[type="radio"]:checked ~ .option-content {
+  color: #0e639c;
+}
+
+.export-option:has(input:checked) {
+  border-color: #0e639c;
+  background-color: #1e3a52;
+}
+
+.option-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  color: #d4d4d4;
+}
+
+.option-icon {
+  font-size: 24px;
+}
+
+.option-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.option-description {
+  font-size: 13px;
+  color: #969696;
+}
+
+.export-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.export-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.export-btn-cancel {
+  background-color: #3e3e42;
+  color: #d4d4d4;
+}
+
+.export-btn-cancel:hover {
+  background-color: #505050;
+}
+
+.export-btn-confirm {
+  background-color: #0e639c;
+  color: white;
+}
+
+.export-btn-confirm:hover {
+  background-color: #1177bb;
+}
+
+.export-btn:active {
+  transform: scale(0.98);
+}
