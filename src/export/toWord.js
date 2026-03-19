@@ -104,35 +104,7 @@ export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algor
       return { success: false, error: 'A lista de algoritmos está vazia.' };
     }
 
-    const today = new Date().toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-
-    const children = [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: 'Editor Zoldyck - Lista de Algoritmos',
-            bold: true,
-            size: 32,
-            color: '0066CC',
-          }),
-        ],
-        spacing: { after: 160 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `Total: ${algorithms.length} algoritmo(s) | Data: ${today}`,
-            size: 20,
-            color: '666666',
-          }),
-        ],
-        spacing: { after: 280 },
-      }),
-    ];
+    const children = [];
 
     algorithms.forEach((algorithm, index) => {
       const name = algorithm.name || `Algoritmo ${index + 1}`;
@@ -140,6 +112,32 @@ export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algor
       if (index > 0) {
         children.push(new Paragraph({ children: [new PageBreak()] }));
       }
+
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: 'Editor Zoldyck - Lista de Algoritmos',
+              bold: true,
+              size: 30,
+              color: '0066CC',
+            }),
+          ],
+          spacing: { after: 150 },
+        })
+      );
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Item ${index + 1} de ${algorithms.length}`,
+              size: 20,
+              color: '666666',
+            }),
+          ],
+          spacing: { after: 200 },
+        })
+      );
 
       children.push(
         new Paragraph({

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Code2 } from 'lucide-react';
+import { Code2, Music } from 'lucide-react';
 import Editor from './components/Editor/Editor';
 import Console from './components/Console/Console';
 import Toolbar from './components/Toolbar/Toolbar';
@@ -17,6 +17,7 @@ const MOBILE_QUERY = '(max-width: 767px)';
 const LANGUAGE_STORAGE_KEY = 'portugol-language';
 const ALGORITHMS_STORAGE_KEY = 'portugol-algorithm-list';
 const DEFAULT_LANGUAGE = 'pseudocode';
+const MUSIC_MODAL_IMAGES = ['/images.jpeg', '/teste.jpg'];
 
 const createConsoleEntry = (entry) => ({
   id: typeof crypto !== 'undefined' && crypto.randomUUID
@@ -83,6 +84,9 @@ function AppContent() {
       return [];
     }
   });
+  const [showMusicModal, setShowMusicModal] = useState(false);
+  const [musicModalImage, setMusicModalImage] = useState(MUSIC_MODAL_IMAGES[0]);
+  const musicAudioRef = useRef(null);
 
   const appendConsoleEntry = useCallback((entry) => {
     setConsoleEntries((prev) => [...prev, createConsoleEntry(entry)]);
@@ -204,6 +208,18 @@ function AppContent() {
       setConsoleMode('minimized');
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    if (typeof Audio === 'undefined') return;
+    const audio = new Audio('/audio.mp3');
+    audio.preload = 'auto';
+    musicAudioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      musicAudioRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isResizingPanels || isMobile || consoleMode !== 'fixed') return;
@@ -468,6 +484,20 @@ function AppContent() {
     writeConsole(`Modo alterado para ${nextLanguage === 'visualg' ? 'VisualG' : 'Pseudocódigo'}.`);
   }, [code, getUpdatedCodeForMode, language, writeConsole]);
 
+  const handlePlayMusic = useCallback(async () => {
+    const randomImage = MUSIC_MODAL_IMAGES[Math.floor(Math.random() * MUSIC_MODAL_IMAGES.length)];
+    setMusicModalImage(randomImage);
+    setShowMusicModal(true);
+
+    if (!musicAudioRef.current) return;
+    try {
+      musicAudioRef.current.currentTime = 0;
+      await musicAudioRef.current.play();
+    } catch (error) {
+      writeConsoleError('Não foi possível reproduzir o áudio neste navegador.');
+    }
+  }, [writeConsoleError]);
+
   const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
   const showDesktopFixedConsole = !isMobile && consoleMode === 'fixed';
   const showDesktopOverlayConsole = !isMobile && consoleMode === 'overlay';
@@ -677,6 +707,24 @@ function AppContent() {
       {showDocsModal && (
         <DocsModal onClose={() => setShowDocsModal(false)} />
       )}
+      {showMusicModal && (
+        <div
+          className="fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex items-center justify-center px-4"
+          onClick={() => setShowMusicModal(false)}
+        >
+          <div
+            className="bg-card border-2 border-foreground rounded-sm shadow-[8px_8px_0_rgba(0,0,0,0.2)] p-4 max-w-md w-full"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              src={musicModalImage}
+              alt="Imagem aleatória"
+              className="w-full h-64 object-cover border-2 border-foreground rounded-sm"
+            />
+            <p className="mt-4 text-center text-xl font-black uppercase tracking-[0.3em]">okay</p>
+          </div>
+        </div>
+      )}
 
       <footer className="border-t-2 border-border px-4 md:px-8 py-3 text-[10px] uppercase tracking-[0.3em] flex justify-between flex-wrap gap-2">
         <button
@@ -684,6 +732,13 @@ function AppContent() {
           className="underline-offset-4 hover:underline text-foreground"
         >
           Professor Afonso pediu para você clicar aqui
+        </button>
+        <button
+          onClick={handlePlayMusic}
+          className="inline-flex items-center gap-2 border-2 border-foreground px-3 py-1 hover:bg-foreground hover:text-background transition-colors"
+        >
+          <Music className="w-4 h-4" />
+          <span>Não clique aqui, por favor</span>
         </button>
       </footer>
     </div>

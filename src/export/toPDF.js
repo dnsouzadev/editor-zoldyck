@@ -96,12 +96,6 @@ export async function exportAlgorithmsToPDF(algorithms, fileName = 'lista-algori
       format: 'a4',
     });
 
-    const today = new Date().toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-
     const pageWidth = 210;
     const pageHeight = 297;
     const marginX = 15;
@@ -119,21 +113,24 @@ export async function exportAlgorithmsToPDF(algorithms, fileName = 'lista-algori
       return currentY;
     };
 
-    let y = marginTop;
-
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(16);
-    pdf.text('Editor Zoldyck - Lista de Algoritmos', marginX, y);
-    y += 7;
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text(`Total: ${algorithms.length} algoritmo(s) | Data: ${today}`, marginX, y);
-    y += 8;
-
     algorithms.forEach((algorithm, index) => {
-      y = ensureSpace(y, 3);
+      if (index > 0) {
+        pdf.addPage();
+      }
 
+      let y = marginTop;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text('Editor Zoldyck - Lista de Algoritmos', marginX, y);
+      y += 7;
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      pdf.text(`Item ${index + 1} de ${algorithms.length}`, marginX, y);
+      y += 7;
+
+      y = ensureSpace(y, 3);
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(12);
       const title = `${index + 1}. ${algorithm.name || `Algoritmo ${index + 1}`}`;
