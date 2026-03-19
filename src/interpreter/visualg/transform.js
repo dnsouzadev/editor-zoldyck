@@ -94,6 +94,14 @@ export function transformVisualGSource(code) {
   output = transformVarDeclarations(output);
   output = convertLeiaCalls(output);
 
+  // O código VisualG geralmente vem encapsulado em `programa { ... }`.
+  // Depois de remover `programa`, removemos o bloco externo para que
+  // `inicio` fique no escopo acessível ao bootstrap final.
+  const trimmed = output.trim();
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    output = trimmed.slice(1, -1);
+  }
+
   const finalCode = `
 ${output}
 

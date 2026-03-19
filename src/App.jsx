@@ -11,7 +11,7 @@ import { runPortugol, runVisualG } from './interpreter';
 import { exportToImage } from './export/toImage';
 import { exportToPDF, exportAlgorithmsToPDF } from './export/toPDF';
 import { exportToWord, exportAlgorithmsToWord } from './export/toWord';
-import { getExample } from './examples/examples';
+import { getDefaultCode, getExample, getExamplesList } from './examples/examples';
 
 const MOBILE_QUERY = '(max-width: 767px)';
 const LANGUAGE_STORAGE_KEY = 'portugol-language';
@@ -441,6 +441,33 @@ function AppContent() {
     writeConsole('Exemplo "' + name + '" carregado!');
   };
 
+  const normalizeCode = useCallback((source) => source.replace(/\r\n/g, '\n').trim(), []);
+
+  const getUpdatedCodeForMode = useCallback((currentCode, fromMode, toMode) => {
+    const normalizedCurrent = normalizeCode(currentCode);
+    const fromExamples = getExamplesList(fromMode);
+    const toExamples = getExamplesList(toMode);
+
+    const currentExampleIndex = fromExamples.findIndex((example) => {
+      return normalizeCode(getExample(example.id, fromMode)) === normalizedCurrent;
+    });
+
+    if (currentExampleIndex >= 0 && toExamples.length > 0) {
+      const mappedIndex = Math.min(currentExampleIndex, toExamples.length - 1);
+      return getExample(toExamples[mappedIndex].id, toMode);
+    }
+
+    return getDefaultCode(toMode);
+  }, [normalizeCode]);
+
+  const handleLanguageChange = useCallback((nextLanguage) => {
+    if (nextLanguage === language) return;
+    const nextCode = getUpdatedCodeForMode(code, language, nextLanguage);
+    setLanguage(nextLanguage);
+    setCode(nextCode);
+    writeConsole(`Modo alterado para ${nextLanguage === 'visualg' ? 'VisualG' : 'Pseudocódigo'}.`);
+  }, [code, getUpdatedCodeForMode, language, writeConsole]);
+
   const mobileConsoleRevealHint = isMobile && hasExecutedOnMobile && !showConsolePanel;
   const showDesktopFixedConsole = !isMobile && consoleMode === 'fixed';
   const showDesktopOverlayConsole = !isMobile && consoleMode === 'overlay';
@@ -504,7 +531,7 @@ function AppContent() {
         algorithmListCount={algorithmList.length}
         isRunning={isRunning}
         language={language}
-        onLanguageChange={setLanguage}
+        onLanguageChange={handleLanguageChange}
         onShowDocs={() => setShowDocsModal(true)}
       />
 

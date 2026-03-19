@@ -42,7 +42,7 @@ export default function Toolbar({
           ) : (
             <Play className="w-4 h-4" />
           )}
-          <span className="hidden sm:inline ml-2">{isRunning ? 'Parar' : 'Executar'}</span>
+          <span className="ml-2">{isRunning ? 'Parar' : 'Executar'}</span>
         </Button>
         
         <Button 
@@ -93,26 +93,23 @@ export default function Toolbar({
       </div>
       
       <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
-        <label className="flex flex-col gap-1 text-[9px] uppercase tracking-[0.3em] text-muted-foreground">
-          <span className="pl-1">Modo</span>
-          <div className="relative h-8 md:h-9">
-            <select
-              value={language}
-              onChange={(event) => onLanguageChange?.(event.target.value)}
-              aria-label="Selecionar modo do interpretador"
-              className="appearance-none bg-card text-foreground border-2 border-foreground px-3 pr-8 font-mono text-[11px] tracking-[0.2em] rounded-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer h-full w-[130px] md:w-[150px]"
-            >
-              {LANGUAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute inset-0 right-0 flex items-center justify-end pr-2 text-foreground text-xs">
-              ▼
-            </span>
-          </div>
-        </label>
+        <div className="relative h-8 md:h-9">
+          <select
+            value={language}
+            onChange={(event) => onLanguageChange?.(event.target.value)}
+            aria-label="Selecionar modo do interpretador"
+            className="appearance-none bg-card text-foreground border-2 border-foreground px-3 pr-8 font-mono text-[11px] tracking-[0.2em] rounded-none focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer h-full w-[130px] md:w-[150px]"
+          >
+            {LANGUAGE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute inset-0 right-0 flex items-center justify-end pr-2 text-foreground text-xs">
+            ▼
+          </span>
+        </div>
 
         <Button 
           variant="secondary"
