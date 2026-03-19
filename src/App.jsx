@@ -65,6 +65,7 @@ function AppContent() {
   const consoleInputResolverRef = useRef(null);
   const consolePromptRef = useRef('');
   const mainLayoutRef = useRef(null);
+  const appContainerRef = useRef(null);
   const [language, setLanguage] = useState(getStoredLanguage);
   const [consoleMode, setConsoleMode] = useState('minimized'); // minimized | overlay | fixed
   const abortControllerRef = useRef({ aborted: false });
@@ -528,14 +529,17 @@ function AppContent() {
     setIsResizingPanels(true);
   };
 
-  const handleEditorScrollChange = useCallback((scrollTop = 0) => {
+  const handleContainerScroll = useCallback((event) => {
     if (!isMobile) return;
+    const scrollTop = event.currentTarget.scrollTop || 0;
     setShowMobileFooter(scrollTop > 24);
   }, [isMobile]);
 
   return (
     <div
-      className="flex flex-col bg-background text-foreground w-full font-mono overflow-hidden"
+      ref={appContainerRef}
+      onScroll={handleContainerScroll}
+      className={`flex flex-col bg-background text-foreground w-full font-mono ${isMobile ? 'overflow-y-auto' : 'overflow-hidden'}`}
       style={containerHeightStyle}
     >
       <header className="border-b-2 border-border px-4 md:px-8 py-4">
@@ -607,12 +611,7 @@ function AppContent() {
                 <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
               </div>
               <div className="flex-1 min-h-0">
-                <Editor
-                  code={code}
-                  onChange={setCode}
-                  onRunShortcut={executeProgram}
-                  onScrollPositionChange={handleEditorScrollChange}
-                />
+                <Editor code={code} onChange={setCode} onRunShortcut={executeProgram} />
               </div>
             </section>
           )}
