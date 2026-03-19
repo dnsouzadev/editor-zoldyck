@@ -52,6 +52,12 @@ export class Parser {
     return types.includes(this.currentToken.type);
   }
 
+  consumeStatementSeparators() {
+    while (this.match(TokenType.PONTO_VIRGULA)) {
+      this.advance();
+    }
+  }
+
   // Programa principal
   parse() {
     const name = this.parseAlgorithmHeader();
@@ -79,8 +85,11 @@ export class Parser {
       this.advance();
       
       while (!this.match(TokenType.INICIO)) {
+        this.consumeStatementSeparators();
+        if (this.match(TokenType.INICIO)) break;
         const varDecl = this.parseVarDeclaration();
         variables.push(...varDecl);
+        this.consumeStatementSeparators();
       }
     }
     
@@ -202,9 +211,16 @@ export class Parser {
     while (!this.match(TokenType.FIM, TokenType.FIMALGORITMO, TokenType.FIMSE, TokenType.SENAO, 
                         TokenType.FIMENQUANTO, TokenType.FIMPARA, TokenType.ATE, 
                         TokenType.FECHA_CHAVE, TokenType.EOF)) {
+      this.consumeStatementSeparators();
+      if (this.match(TokenType.FIM, TokenType.FIMALGORITMO, TokenType.FIMSE, TokenType.SENAO,
+                      TokenType.FIMENQUANTO, TokenType.FIMPARA, TokenType.ATE,
+                      TokenType.FECHA_CHAVE, TokenType.EOF)) {
+        break;
+      }
       const stmt = this.parseStatement();
       if (stmt) {
         statements.push(stmt);
+        this.consumeStatementSeparators();
       } else {
         throw new Error(
           `Comando inválido ou inesperado: '${this.currentToken.value || this.currentToken.type}' ` +

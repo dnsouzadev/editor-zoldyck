@@ -86,6 +86,7 @@ function AppContent() {
   });
   const [showMusicModal, setShowMusicModal] = useState(false);
   const [musicModalImage, setMusicModalImage] = useState(MUSIC_MODAL_IMAGES[0]);
+  const [showMobileFooter, setShowMobileFooter] = useState(false);
   const musicAudioRef = useRef(null);
 
   const appendConsoleEntry = useCallback((entry) => {
@@ -207,6 +208,14 @@ function AppContent() {
     if (!isMobile) {
       setConsoleMode('minimized');
     }
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileFooter(true);
+      return;
+    }
+    setShowMobileFooter(false);
   }, [isMobile]);
 
   useEffect(() => {
@@ -519,6 +528,11 @@ function AppContent() {
     setIsResizingPanels(true);
   };
 
+  const handleEditorScrollChange = useCallback((scrollTop = 0) => {
+    if (!isMobile) return;
+    setShowMobileFooter(scrollTop > 24);
+  }, [isMobile]);
+
   return (
     <div
       className="flex flex-col bg-background text-foreground w-full font-mono overflow-hidden"
@@ -593,7 +607,12 @@ function AppContent() {
                 <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
               </div>
               <div className="flex-1 min-h-0">
-                <Editor code={code} onChange={setCode} onRunShortcut={executeProgram} />
+                <Editor
+                  code={code}
+                  onChange={setCode}
+                  onRunShortcut={executeProgram}
+                  onScrollPositionChange={handleEditorScrollChange}
+                />
               </div>
             </section>
           )}
@@ -727,6 +746,7 @@ function AppContent() {
         </div>
       )}
 
+      {(!isMobile || showMobileFooter) && (
       <footer className="border-t-2 border-border px-4 md:px-8 py-3 text-[10px] uppercase tracking-[0.3em] flex justify-between flex-wrap gap-2">
         <button
           onClick={() => window.open('https://papertoilet.com/', '_blank')}
@@ -742,6 +762,7 @@ function AppContent() {
           <span>Não clique aqui, por favor</span>
         </button>
       </footer>
+      )}
     </div>
   );
 }

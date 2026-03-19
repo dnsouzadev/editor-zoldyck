@@ -2,15 +2,21 @@ import { Editor as MonacoEditor, loader } from '@monaco-editor/react';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '../ThemeProvider';
 
-export default function Editor({ code, onChange, onRunShortcut }) {
+export default function Editor({ code, onChange, onRunShortcut, onScrollPositionChange }) {
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
   const runShortcutRef = useRef(onRunShortcut);
+  const scrollListenerRef = useRef(null);
   const { theme } = useTheme();
 
   useEffect(() => {
     runShortcutRef.current = onRunShortcut;
   }, [onRunShortcut]);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+    onScrollPositionChange?.(editorRef.current.getScrollTop());
+  }, [onScrollPositionChange]);
 
   function handleEditorDidMount(editor, monaco) {
     editorRef.current = editor;
@@ -172,6 +178,10 @@ export default function Editor({ code, onChange, onRunShortcut }) {
       runShortcutRef.current?.();
     });
 
+    scrollListenerRef.current = editor.onDidScrollChange((event) => {
+      onScrollPositionChange?.(event.scrollTop);
+    });
+
     // Forçar tema no mount
     const monacoTheme = theme === 'dark' ? 'portugol-dark' : 'portugol-light';
     monaco.editor.setTheme(monacoTheme);
@@ -186,6 +196,15 @@ export default function Editor({ code, onChange, onRunShortcut }) {
       });
     }
   }, [theme]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollListenerRef.current) {
+        scrollListenerRef.current.dispose();
+        scrollListenerRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <MonacoEditor
