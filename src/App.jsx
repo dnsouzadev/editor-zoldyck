@@ -508,9 +508,7 @@ function AppContent() {
     ? { flexBasis: `${(1 - splitRatio) * 100}%` }
     : undefined;
 
-  const containerHeightStyle = isMobile
-    ? { minHeight: 'calc(var(--vh, 1vh) * 100)' }
-    : { height: 'calc(var(--vh, 1vh) * 100)' };
+  const containerHeightStyle = { height: 'calc(var(--vh, 1vh) * 100)' };
   const shouldShowMobileConsole = isMobile && showConsolePanel;
   const shouldShowEditorPane = !isMobile || !showConsolePanel;
   const mainPaddingStyle = showDesktopOverlayConsole ? { paddingBottom: '18rem' } : undefined;
@@ -523,7 +521,7 @@ function AppContent() {
 
   return (
     <div
-      className={`flex flex-col bg-background text-foreground w-full font-mono ${isMobile ? 'overflow-auto' : 'overflow-hidden'}`}
+      className="flex flex-col bg-background text-foreground w-full font-mono overflow-hidden"
       style={containerHeightStyle}
     >
       <header className="border-b-2 border-border px-4 md:px-8 py-4">
@@ -578,7 +576,7 @@ function AppContent() {
       )}
 
       <main
-        className="flex-1 px-4 md:px-8 py-4 bg-background overflow-hidden relative"
+        className="flex-1 px-4 md:px-8 py-4 bg-background relative overflow-hidden"
         style={mainPaddingStyle}
       >
         <div
@@ -587,7 +585,7 @@ function AppContent() {
         >
           {shouldShowEditorPane && (
             <section
-              className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
+              className={`flex flex-col border-2 border-foreground rounded-sm bg-card shadow-[6px_6px_0_rgba(0,0,0,0.08)] ${isMobile ? 'flex-1 min-h-0' : 'h-full'}`}
               style={editorPaneStyle}
             >
               <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
@@ -638,7 +636,7 @@ function AppContent() {
           )}
 
           {shouldShowMobileConsole && (
-            <section className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
+            <section className="flex flex-col border-2 border-foreground rounded-sm bg-card flex-1 min-h-0 shadow-[6px_6px_0_rgba(0,0,0,0.08)]">
               <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
                 <span>Console</span>
                 <button
