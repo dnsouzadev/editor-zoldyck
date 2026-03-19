@@ -512,6 +512,7 @@ function AppContent() {
     ? { minHeight: 'calc(var(--vh, 1vh) * 100)' }
     : { height: 'calc(var(--vh, 1vh) * 100)' };
   const shouldShowMobileConsole = isMobile && showConsolePanel;
+  const shouldShowEditorPane = !isMobile || !showConsolePanel;
   const mainPaddingStyle = showDesktopOverlayConsole ? { paddingBottom: '18rem' } : undefined;
 
   const startPanelResize = (event) => {
@@ -584,18 +585,20 @@ function AppContent() {
           ref={mainLayoutRef}
           className="flex flex-col gap-4 h-full"
         >
-          <section
-            className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
-            style={editorPaneStyle}
-          >
-            <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
-              <span>Editor</span>
-              <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
-            </div>
-            <div className="flex-1 min-h-0">
-              <Editor code={code} onChange={setCode} onRunShortcut={executeProgram} />
-            </div>
-          </section>
+          {shouldShowEditorPane && (
+            <section
+              className="flex flex-col border-2 border-foreground rounded-sm bg-card h-full shadow-[6px_6px_0_rgba(0,0,0,0.08)]"
+              style={editorPaneStyle}
+            >
+              <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
+                <span>Editor</span>
+                <span className="hidden md:inline text-muted-foreground">Ctrl + Enter</span>
+              </div>
+              <div className="flex-1 min-h-0">
+                <Editor code={code} onChange={setCode} onRunShortcut={executeProgram} />
+              </div>
+            </section>
+          )}
 
           {showDesktopFixedConsole && (
             <div
