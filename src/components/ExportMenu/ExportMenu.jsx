@@ -3,7 +3,7 @@ import { X, Image, FileText, FileDown, Type } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 
-export default function ExportMenu({ onExport, onClose }) {
+export default function ExportMenu({ onExport, onClose, algorithmListCount = 0 }) {
   const [format, setFormat] = useState('png');
 
   const handleExport = () => {
@@ -19,6 +19,8 @@ export default function ExportMenu({ onExport, onClose }) {
       { id: 'pdf', label: 'PDF', description: 'Documento formatado', icon: FileText },
       { id: 'docx', label: 'Word (DOCX)', description: 'Documento editável', icon: FileDown },
       { id: 'text', label: 'Texto puro', description: isMobileDevice ? 'Compartilha o código como texto separado' : 'Copia/compartilha o código em texto', icon: Type },
+      { id: 'pdf-list', label: 'PDF (lista)', description: 'Exporta todos os algoritmos salvos na lista', icon: FileText, disabled: algorithmListCount === 0 },
+      { id: 'docx-list', label: 'Word (lista)', description: 'Exporta todos os algoritmos salvos na lista', icon: FileDown, disabled: algorithmListCount === 0 },
     ];
     if (isMobileDevice) {
       // Move text option to the front on mobile for visibilidade
@@ -26,7 +28,7 @@ export default function ExportMenu({ onExport, onClose }) {
       return [textOption, ...items];
     }
     return items;
-  }, [isMobileDevice]);
+  }, [algorithmListCount, isMobileDevice]);
 
   return (
     <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 px-4" onClick={onClose}>
@@ -48,7 +50,8 @@ export default function ExportMenu({ onExport, onClose }) {
                   "flex items-center gap-3 p-3 rounded-none border-2 cursor-pointer transition-colors uppercase text-[11px] tracking-[0.2em]",
                   format === fmt.id
                     ? "border-foreground bg-foreground text-background"
-                    : "border-border hover:bg-secondary"
+                    : "border-border hover:bg-secondary",
+                  fmt.disabled ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""
                 )}
               >
                 <input
@@ -56,13 +59,17 @@ export default function ExportMenu({ onExport, onClose }) {
                   name="format"
                   value={fmt.id}
                   checked={format === fmt.id}
+                  disabled={fmt.disabled}
                   onChange={(e) => setFormat(e.target.value)}
                   className="sr-only"
                 />
                 <Icon className={cn("w-5 h-5", format === fmt.id ? "text-background" : "text-foreground")} />
                 <div className="flex-1 normal-case tracking-normal">
                   <div className="font-semibold">{fmt.label}</div>
-                  <div className="text-sm text-muted-foreground">{fmt.description}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {fmt.description}
+                    {fmt.disabled ? ' (lista vazia)' : ''}
+                  </div>
                 </div>
               </label>
             );

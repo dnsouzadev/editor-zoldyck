@@ -1,4 +1,4 @@
-import { Play, Square, Trash2, Download, FileCode, Moon, Sun, BookOpen } from 'lucide-react';
+import { Play, Square, Trash2, Download, FileCode, Moon, Sun, BookOpen, ListPlus, ListX } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../ThemeProvider';
 import { cn } from '../../lib/utils';
@@ -13,6 +13,9 @@ export default function Toolbar({
   onClear, 
   onExport, 
   onLoadExample, 
+  onAddToList,
+  onClearList,
+  algorithmListCount = 0,
   isRunning,
   language,
   onLanguageChange,
@@ -63,6 +66,29 @@ export default function Toolbar({
         >
           <FileCode className="w-4 h-4 text-primary" />
           <span className="hidden md:inline ml-2 text-foreground/90">Exemplos</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={onAddToList}
+          size="sm"
+          className="h-8 md:h-9 px-3 md:px-4 rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-[0.25em] hover:bg-secondary/70"
+          title="Adicionar código atual na lista de algoritmos"
+        >
+          <ListPlus className="w-4 h-4 text-primary" />
+          <span className="hidden lg:inline ml-2 text-foreground/90">Lista ({algorithmListCount})</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          onClick={onClearList}
+          size="sm"
+          disabled={algorithmListCount === 0}
+          className="h-8 md:h-9 px-3 md:px-4 rounded-none border-2 border-foreground font-mono text-[10px] uppercase tracking-[0.25em] hover:bg-secondary/70"
+          title="Limpar lista de algoritmos"
+        >
+          <ListX className="w-4 h-4 text-primary" />
+          <span className="hidden lg:inline ml-2 text-foreground/90">Limpar lista</span>
         </Button>
       </div>
       

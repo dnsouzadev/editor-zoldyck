@@ -4,7 +4,6 @@ import html2canvas from 'html2canvas';
 
 export async function exportToPDF(code, algorithmName = 'algoritmo') {
   const siteUrl = typeof window !== 'undefined' && window.location ? window.location.origin : 'https://editor-zoldyck.app';
-  // Criar elemento temporário com o código
   const container = document.createElement('div');
   container.style.cssText = `
     position: fixed;
@@ -19,7 +18,6 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
     width: 700px;
   `;
 
-  // Criar cabeçalho
   const header = document.createElement('div');
   header.style.cssText = `
     margin-bottom: 20px;
@@ -32,17 +30,16 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
     </div>
     <div style="font-size: 11px; color: #666;">
       Algoritmo: ${algorithmName}<br>
-      Data: ${new Date().toLocaleDateString('pt-BR', { 
-        day: '2-digit', 
-        month: 'long', 
-        year: 'numeric' 
+      Data: ${new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
       })}<br>
       Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1<br>
       URL: ${siteUrl}
     </div>
   `;
 
-  // Criar área de código
   const codeBlock = document.createElement('pre');
   codeBlock.style.cssText = `
     margin: 0;
@@ -60,16 +57,13 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
   document.body.appendChild(container);
 
   try {
-    // Capturar como imagem
     const canvas = await html2canvas(container, {
       backgroundColor: 'white',
       scale: 2,
     });
 
-    // Remover elemento temporário
     document.body.removeChild(container);
 
-    // Criar PDF
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -77,7 +71,7 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
     });
 
     const imgData = canvas.toDataURL('image/png');
-    const imgWidth = 210; // A4 width in mm
+    const imgWidth = 210;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
@@ -86,6 +80,82 @@ export async function exportToPDF(code, algorithmName = 'algoritmo') {
     return { success: true };
   } catch (error) {
     document.body.removeChild(container);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function exportAlgorithmsToPDF(algorithms, fileName = 'lista-algoritmos') {
+  try {
+    if (!Array.isArray(algorithms) || algorithms.length === 0) {
+      return { success: false, error: 'A lista de algoritmos está vazia.' };
+    }
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const today = new Date().toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const marginX = 15;
+    const marginTop = 18;
+    const marginBottom = 15;
+    const maxTextWidth = pageWidth - marginX * 2;
+    const lineHeight = 5;
+
+    const ensureSpace = (currentY, neededLines = 1) => {
+      const requiredHeight = neededLines * lineHeight;
+      if (currentY + requiredHeight > pageHeight - marginBottom) {
+        pdf.addPage();
+        return marginTop;
+      }
+      return currentY;
+    };
+
+    let y = marginTop;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text('Editor Zoldyck - Lista de Algoritmos', marginX, y);
+    y += 7;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text(`Total: ${algorithms.length} algoritmo(s) | Data: ${today}`, marginX, y);
+    y += 8;
+
+    algorithms.forEach((algorithm, index) => {
+      y = ensureSpace(y, 3);
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      const title = `${index + 1}. ${algorithm.name || `Algoritmo ${index + 1}`}`;
+      pdf.text(title, marginX, y);
+      y += 6;
+
+      pdf.setFont('courier', 'normal');
+      pdf.setFontSize(9);
+      const lines = pdf.splitTextToSize(algorithm.code || '', maxTextWidth);
+
+      for (const line of lines) {
+        y = ensureSpace(y, 1);
+        pdf.text(line, marginX, y);
+        y += lineHeight;
+      }
+
+      y += 4;
+    });
+
+    pdf.save(`${fileName}.pdf`);
+    return { success: true };
+  } catch (error) {
     return { success: false, error: error.message };
   }
 }

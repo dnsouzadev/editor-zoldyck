@@ -9,12 +9,13 @@ import DocsModal from './components/DocsModal/DocsModal';
 import { ThemeProvider } from './components/ThemeProvider';
 import { runPortugol, runVisualG } from './interpreter';
 import { exportToImage } from './export/toImage';
-import { exportToPDF } from './export/toPDF';
-import { exportToWord } from './export/toWord';
+import { exportToPDF, exportAlgorithmsToPDF } from './export/toPDF';
+import { exportToWord, exportAlgorithmsToWord } from './export/toWord';
 import { getExample } from './examples/examples';
 
 const MOBILE_QUERY = '(max-width: 767px)';
 const LANGUAGE_STORAGE_KEY = 'portugol-language';
+const ALGORITHMS_STORAGE_KEY = 'portugol-algorithm-list';
 const DEFAULT_LANGUAGE = 'pseudocode';
 
 const createConsoleEntry = (entry) => ({
@@ -74,6 +75,14 @@ function AppContent() {
   const [hasExecutedOnMobile, setHasExecutedOnMobile] = useState(false);
   const [splitRatio, setSplitRatio] = useState(0.7);
   const [isResizingPanels, setIsResizingPanels] = useState(false);
+  const [algorithmList, setAlgorithmList] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ALGORITHMS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (error) {
+      return [];
+    }
+  });
 
   const appendConsoleEntry = useCallback((entry) => {
     setConsoleEntries((prev) => [...prev, createConsoleEntry(entry)]);
@@ -153,6 +162,12 @@ function AppContent() {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     } catch (error) {}
   }, [language]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ALGORITHMS_STORAGE_KEY, JSON.stringify(algorithmList));
+    } catch (error) {}
+  }, [algorithmList]);
 
   useEffect(() => {
     const setAppHeight = () => {
@@ -327,6 +342,11 @@ function AppContent() {
     const match = code.match(/algoritmo\s+["'](.+?)["']/i);
     const algorithmName = match ? match[1] : 'codigo';
 
+    if ((format === 'pdf-list' || format === 'docx-list') && algorithmList.length === 0) {
+      writeConsoleError('A lista de algoritmos está vazia.');
+      return;
+    }
+
     const shareCodeAsText = async () => {
       if (!hasNavigator) return false;
       if (navigator.share) {
@@ -369,6 +389,12 @@ function AppContent() {
         case 'docx':
           result = await exportToWord(code, algorithmName);
           break;
+        case 'pdf-list':
+          result = await exportAlgorithmsToPDF(algorithmList, 'lista-algoritmos');
+          break;
+        case 'docx-list':
+          result = await exportAlgorithmsToWord(algorithmList, 'lista-algoritmos');
+          break;
         default:
           return;
       }
@@ -385,6 +411,30 @@ function AppContent() {
       writeConsoleError('Erro: ' + error.message);
     }
   };
+
+  const getAlgorithmNameFromCode = useCallback((sourceCode) => {
+    const match = sourceCode.match(/algoritmo\s+["'](.+?)["']/i);
+    return match ? match[1] : `algoritmo-${algorithmList.length + 1}`;
+  }, [algorithmList.length]);
+
+  const handleAddCurrentAlgorithmToList = useCallback(() => {
+    const name = getAlgorithmNameFromCode(code);
+    const entry = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`,
+      name,
+      code,
+      createdAt: new Date().toISOString(),
+    };
+    setAlgorithmList((prev) => [...prev, entry]);
+    writeConsole(`Algoritmo "${name}" adicionado à lista (${algorithmList.length + 1}).`);
+  }, [algorithmList.length, code, getAlgorithmNameFromCode, writeConsole]);
+
+  const handleClearAlgorithmList = useCallback(() => {
+    setAlgorithmList([]);
+    writeConsole('Lista de algoritmos limpa.');
+  }, [writeConsole]);
 
   const handleSelectExample = (id, name) => {
     setCode(getExample(id, language));
@@ -449,6 +499,9 @@ function AppContent() {
         onClear={clearConsole}
         onExport={() => setShowExportMenu(true)}
         onLoadExample={() => setShowExamplesModal(true)}
+        onAddToList={handleAddCurrentAlgorithmToList}
+        onClearList={handleClearAlgorithmList}
+        algorithmListCount={algorithmList.length}
         isRunning={isRunning}
         language={language}
         onLanguageChange={setLanguage}
@@ -580,40 +633,12 @@ function AppContent() {
         )}
       </main>
 
-      {shouldShowFloatingConsole && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl z-40">
-          <div className="border-2 border-foreground bg-card shadow-[10px_10px_0_rgba(0,0,0,0.2)] rounded-sm">
-            <div className="flex items-center justify-between border-b-2 border-foreground px-4 py-2 text-[11px] uppercase tracking-[0.3em]">
-              <span>Console (flutuante)</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={pinConsole}
-                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
-                >
-                  Fixar
-                </button>
-                <button
-                  onClick={hideFloatingConsole}
-                  className="text-[10px] uppercase tracking-[0.2em] border border-foreground px-2 py-0.5 hover:bg-foreground hover:text-background transition-colors"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-            <div className="h-64">
-              <Console
-                entries={consoleEntries}
-                isWaitingInput={isWaitingInput}
-                inputPrompt={consolePrompt}
-                onSubmitInput={submitConsoleInput}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {showExportMenu && (
-        <ExportMenu onExport={handleExport} onClose={() => setShowExportMenu(false)} />
+        <ExportMenu
+          onExport={handleExport}
+          onClose={() => setShowExportMenu(false)}
+          algorithmListCount={algorithmList.length}
+        />
       )}
       {showExamplesModal && (
         <ExamplesModal

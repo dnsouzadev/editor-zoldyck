@@ -1,5 +1,5 @@
 // Módulo de exportação para Word (DOCX)
-import { Document, Paragraph, TextRun, AlignmentType, Packer } from 'docx';
+import { Document, Paragraph, TextRun, Packer, PageBreak } from 'docx';
 import { saveAs } from 'file-saver';
 
 export async function exportToWord(code, algorithmName = 'algoritmo') {
@@ -9,13 +9,12 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
         {
           properties: {},
           children: [
-            // Título
             new Paragraph({
               children: [
                 new TextRun({
                   text: 'Editor Zoldyck - Código Fonte',
                   bold: true,
-                  size: 32, // 16pt
+                  size: 32,
                   color: '0066CC',
                 }),
               ],
@@ -23,13 +22,11 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
                 after: 200,
               },
             }),
-
-            // Informações
             new Paragraph({
               children: [
                 new TextRun({
                   text: `Algoritmo: ${algorithmName}`,
-                  size: 20, // 10pt
+                  size: 20,
                   color: '666666',
                 }),
               ],
@@ -42,7 +39,7 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
                     month: 'long',
                     year: 'numeric',
                   })}`,
-                  size: 20, // 10pt
+                  size: 20,
                   color: '666666',
                 }),
               ],
@@ -59,8 +56,6 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
                 after: 400,
               },
             }),
-
-            // Separador
             new Paragraph({
               border: {
                 bottom: {
@@ -74,20 +69,18 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
                 after: 300,
               },
             }),
-
-            // Código
             ...code.split('\n').map(
               (line) =>
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: line || ' ', // Linha vazia precisa de espaço
+                      text: line || ' ',
                       font: 'Courier New',
-                      size: 20, // 10pt
+                      size: 20,
                     }),
                   ],
                   spacing: {
-                    line: 276, // 1.15 line spacing
+                    line: 276,
                   },
                 })
             ),
@@ -96,9 +89,99 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
       ],
     });
 
-    // Gerar e salvar
     const blob = await Packer.toBlob(doc);
     saveAs(blob, `${algorithmName}.docx`);
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algoritmos') {
+  try {
+    if (!Array.isArray(algorithms) || algorithms.length === 0) {
+      return { success: false, error: 'A lista de algoritmos está vazia.' };
+    }
+
+    const today = new Date().toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const children = [
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: 'Editor Zoldyck - Lista de Algoritmos',
+            bold: true,
+            size: 32,
+            color: '0066CC',
+          }),
+        ],
+        spacing: { after: 160 },
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Total: ${algorithms.length} algoritmo(s) | Data: ${today}`,
+            size: 20,
+            color: '666666',
+          }),
+        ],
+        spacing: { after: 280 },
+      }),
+    ];
+
+    algorithms.forEach((algorithm, index) => {
+      const name = algorithm.name || `Algoritmo ${index + 1}`;
+
+      if (index > 0) {
+        children.push(new Paragraph({ children: [new PageBreak()] }));
+      }
+
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `${index + 1}. ${name}`,
+              bold: true,
+              size: 26,
+            }),
+          ],
+          spacing: { after: 200 },
+        })
+      );
+
+      const lines = (algorithm.code || '').split('\n');
+      lines.forEach((line) => {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line || ' ',
+                font: 'Courier New',
+                size: 20,
+              }),
+            ],
+            spacing: { line: 276 },
+          })
+        );
+      });
+    });
+
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children,
+        },
+      ],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${fileName}.docx`);
 
     return { success: true };
   } catch (error) {
