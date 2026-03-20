@@ -32,10 +32,10 @@ export default function ExportMenu({ onExport, onClose, algorithmListCount = 0 }
 
   return (
     <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 px-4" onClick={onClose}>
-      <div className="bg-card border-2 border-foreground rounded-sm shadow-[8px_8px_0_rgba(0,0,0,0.2)] p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-surface-bright p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4 text-foreground">
-          <h2 className="text-lg font-black uppercase tracking-[0.3em]">Exportar</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-none border border-transparent hover:border-foreground">
+          <h2 className="text-lg font-semibold uppercase tracking-[0.3em] font-display">Exportar</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-none bg-surface-highest hover:bg-foreground hover:text-background transition-colors">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -47,10 +47,10 @@ export default function ExportMenu({ onExport, onClose, algorithmListCount = 0 }
               <label
                 key={fmt.id}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-none border-2 cursor-pointer transition-colors uppercase text-[11px] tracking-[0.2em]",
+                  "flex items-center gap-3 p-3 rounded-none cursor-pointer transition-colors uppercase text-[11px] tracking-[0.2em] bg-surface-base",
                   format === fmt.id
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border hover:bg-secondary",
+                    ? "bg-foreground text-background"
+                    : "hover:bg-surface-highest",
                   fmt.disabled ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""
                 )}
               >
@@ -77,10 +77,10 @@ export default function ExportMenu({ onExport, onClose, algorithmListCount = 0 }
         </div>
 
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onClose} className="rounded-none border-2 border-foreground">
+          <Button variant="outline" onClick={onClose} className="rounded-none border-0 bg-surface-highest text-foreground font-display uppercase tracking-[0.3em]">
             Cancelar
           </Button>
-          <Button onClick={handleExport} className="rounded-none border-2 border-foreground bg-primary text-primary-foreground">
+          <Button onClick={handleExport} className="rounded-none border-0 bg-primary text-primary-foreground font-display uppercase tracking-[0.3em]">
             Exportar
           </Button>
         </div>

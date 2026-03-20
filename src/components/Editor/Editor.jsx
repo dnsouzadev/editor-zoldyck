@@ -83,7 +83,14 @@ export default function Editor({ code, onChange, onRunShortcut }) {
         { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
         { token: 'operator', foreground: 'D4D4D4' },
       ],
-      colors: {}
+      colors: {
+        'editor.background': '#1F1F1F',
+        'editorLineNumber.foreground': '#C4C7C8',
+        'editorLineNumber.activeForeground': '#FFFFFF',
+        'editorCursor.foreground': '#FFFFFF',
+        'editorIndentGuide.background': '#2A2A2A',
+        'editorIndentGuide.activeBackground': '#393939',
+      }
     });
 
     monaco.editor.defineTheme('portugol-light', {

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
@@ -7,7 +7,7 @@ html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 @layer base {
@@ -44,29 +44,45 @@ html, body, #root {
     --border: 0 0% 80%;
     --input: 0 0% 85%;
     --ring: 0 0% 7%;
-    --radius: 0.25rem;
+    --radius: 0px;
+    --surface-container: 0 0% 98%;
+    --surface-container-low: 0 0% 96%;
+    --surface-container-lowest: 0 0% 94%;
+    --surface-container-high: 0 0% 92%;
+    --surface-container-highest: 0 0% 90%;
+    --surface-bright: 0 0% 88%;
+    --on-surface-variant: 0 0% 35%;
+    --outline-variant: 0 0% 70%;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 96%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 96%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 0 0% 96%;
-    --primary-foreground: 0 0% 5%;
-    --secondary: 0 0% 16%;
-    --secondary-foreground: 0 0% 96%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 72%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 5%;
-    --destructive: 0 72% 40%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 25%;
-    --input: 0 0% 25%;
-    --ring: 0 0% 96%;
+    --background: 0 0% 7.5%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 12.2%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 12.2%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 180 2.1% 18.8%;
+    --secondary: 0 0% 77.8%;
+    --secondary-foreground: 0 0% 12.2%;
+    --muted: 0 0% 16.5%;
+    --muted-foreground: 195 3.5% 77.6%;
+    --accent: 0 0% 22.4%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 6 100% 80%;
+    --destructive-foreground: 0 0% 12.2%;
+    --border: 195 2.9% 27.5%;
+    --input: 0 0% 16.5%;
+    --ring: 0 0% 100%;
+    --surface-container: 0 0% 12.2%;
+    --surface-container-low: 0 0% 10.6%;
+    --surface-container-lowest: 0 0% 5.5%;
+    --surface-container-high: 0 0% 16.5%;
+    --surface-container-highest: 0 0% 20.8%;
+    --surface-bright: 0 0% 22.4%;
+    --on-surface-variant: 195 3.5% 77.6%;
+    --outline-variant: 195 2.9% 27.5%;
   }
 }
 
@@ -121,6 +137,6 @@ html, body, #root {
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
+    @apply bg-muted-foreground/20 hover:bg-muted-foreground/30 transition-colors;
   }
 }

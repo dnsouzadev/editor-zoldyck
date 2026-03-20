@@ -4,12 +4,12 @@ Editor e interpretador online de **Portugol** com funcionalidades modernas de ex
 
 **Desenvolvido por:** Daniel Souza - Aluno do curso de Sistemas de Informação FeMASS/2026.1
 
-![React](https://img.shields.io/badge/React-19.2.4-blue) ![Vite](https://img.shields.io/badge/Vite-8.0-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-3.4-cyan) ![License](https://img.shields.io/badge/license-MIT-green)
+![React](https://img.shields.io/badge/React-19.2.4-blue) ![Vite](https://img.shields.io/badge/Vite-8.0-purple) ![Tailwind](https://img.shields.io/badge/Tailwind-4.2-cyan) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## 🎯 Funcionalidades
 
 ### ✨ Interface Moderna
-- **Tailwind CSS** - Design moderno e responsivo
+- **Tailwind CSS** - Design moderno e responsivo (tema brutalista)
 - **Tema Claro/Escuro** - Alternar entre temas com um clique
 - **Ícones Lucide** - Interface limpa e profissional
 - **Monaco Editor** - Editor profissional (mesmo do VS Code)
@@ -40,6 +40,7 @@ Perfeito para entregar no WebAcadêmico:
 - Console interativo com input do usuário
 - Atalho Ctrl+Enter para executar
 - Interface responsiva
+- Lista de até 5 algoritmos para alternar rapidamente
 
 ## 🚀 Instalação e Uso
 
@@ -51,8 +52,8 @@ Perfeito para entregar no WebAcadêmico:
 
 ```bash
 # Clone o repositório
-git clone <seu-repositorio>
-cd portugol-web-editor
+git clone https://github.com/dnsouzadev/editor-zoldyck
+cd editor-zoldyck
 
 # Instale as dependências
 npm install

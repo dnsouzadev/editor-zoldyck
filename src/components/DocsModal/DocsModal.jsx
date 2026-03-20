@@ -65,22 +65,22 @@ export default function DocsModal({ onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-card border-2 border-foreground rounded-sm shadow-[10px_10px_0_rgba(0,0,0,0.2)] w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="bg-surface-bright w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b-2 border-foreground px-5 py-3">
+        <div className="flex items-center justify-between px-5 py-4 bg-surface-high">
           <div className="flex items-center gap-3">
             <BookOpenCheck className="w-6 h-6 text-primary" />
             <div>
-              <h2 className="text-xl font-black uppercase tracking-[0.3em]">Referência rápida</h2>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Comandos suportados</p>
+              <h2 className="text-xl font-semibold uppercase tracking-[0.3em] font-display">Referência rápida</h2>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground font-display">Comandos suportados</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-none border border-transparent hover:border-foreground"
+            className="rounded-none bg-surface-highest hover:bg-foreground hover:text-background transition-colors"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -88,14 +88,14 @@ export default function DocsModal({ onClose }) {
 
         <div className="flex-1 overflow-y-auto px-5 py-6 space-y-5">
           {COMMAND_SECTIONS.map((section) => (
-            <section key={section.title} className="border-2 border-dashed border-foreground/40 p-4 rounded-none bg-background/40">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-muted-foreground mb-3">
+            <section key={section.title} className="p-4 rounded-none bg-surface-base">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.35em] text-muted-foreground mb-3 font-display">
                 {section.title}
               </h3>
               <div className="space-y-2">
                 {section.commands.map((command) => (
                   <div key={command.name} className="grid md:grid-cols-3 gap-2 items-start">
-                    <code className="md:col-span-1 font-mono text-xs bg-card border border-foreground/30 px-2 py-1 inline-block">
+                    <code className="md:col-span-1 font-mono text-xs bg-surface-low px-2 py-1 inline-block">
                       {command.name}
                     </code>
                     <p className="md:col-span-2 text-sm text-foreground/90">
@@ -108,14 +108,14 @@ export default function DocsModal({ onClose }) {
           ))}
         </div>
 
-        <div className="border-t-2 border-foreground px-5 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[11px] uppercase tracking-[0.2em]">
+        <div className="px-5 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-[11px] uppercase tracking-[0.2em] bg-surface-high font-display">
           <span className="text-muted-foreground">
             Compatível com modos Pseudocódigo e VisualG
           </span>
           <Button
             variant="outline"
             onClick={onClose}
-            className="rounded-none border-2 border-foreground px-6 py-2"
+            className="rounded-none border-0 bg-foreground text-background px-6 py-2 hover:bg-secondary hover:text-secondary-foreground transition-colors"
           >
             Fechar
           </Button>

@@ -41,6 +41,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: {
+          base: "hsl(var(--surface-container))",
+          low: "hsl(var(--surface-container-low))",
+          lowest: "hsl(var(--surface-container-lowest))",
+          high: "hsl(var(--surface-container-high))",
+          highest: "hsl(var(--surface-container-highest))",
+          bright: "hsl(var(--surface-bright))",
+          variant: "hsl(var(--on-surface-variant))",
+          outline: "hsl(var(--outline-variant))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -48,7 +58,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        mono: ['Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', 'monospace'],
       },
     },
   },

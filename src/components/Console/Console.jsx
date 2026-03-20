@@ -30,13 +30,13 @@ export default function Console({
   };
 
   return (
-    <div className={cn("h-full bg-card p-4 overflow-y-auto font-mono text-xs md:text-sm", className)}>
+    <div className={cn("h-full bg-surface-lowest p-4 overflow-y-auto font-mono text-xs md:text-sm", className)}>
       <div className="flex flex-col gap-1">
         {entries.map((item) => (
           <div
             key={item.id}
             className={cn(
-              "leading-relaxed break-words whitespace-pre-wrap border-b border-dashed border-foreground/20 py-1",
+              "leading-relaxed break-words whitespace-pre-wrap py-1",
               item.type === 'error' && "text-destructive font-semibold bg-destructive/10 px-2",
               item.type === 'input' && "text-primary font-semibold px-2",
               item.type === 'output' && "text-foreground/95"
@@ -47,14 +47,14 @@ export default function Console({
           </div>
         ))}
         {isWaitingInput && (
-          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-3 border-2 border-foreground px-3 py-2">
-            <span className="text-muted-foreground shrink-0 font-semibold uppercase tracking-[0.2em] text-[10px]">
+          <form onSubmit={handleInputSubmit} className="flex flex-wrap items-center gap-2 mt-3 bg-surface-high px-3 py-2">
+            <span className="text-muted-foreground shrink-0 font-semibold uppercase tracking-[0.2em] text-[10px] font-display">
               {inputPrompt}
             </span>
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 min-w-[120px] bg-background border border-input px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm font-mono"
+              className="flex-1 min-w-[120px] bg-surface-lowest px-3 py-1.5 focus:outline-none border-b-2 border-transparent focus:border-foreground text-sm font-mono"
             />
           </form>
         )}
