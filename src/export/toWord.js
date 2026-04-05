@@ -1,89 +1,98 @@
-// Módulo de exportação para Word (DOCX)
 import { Document, Paragraph, TextRun, Packer, PageBreak } from 'docx';
 import { saveAs } from 'file-saver';
+import { formatExportTimestamp, getExportSiteUrl, getNumberedCodeLines, normalizeExportCode } from './formatters';
+
+function createTitleParagraph(text, color = '0066CC', size = 32) {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text,
+        bold: true,
+        size,
+        color,
+      }),
+    ],
+    spacing: {
+      after: 120,
+    },
+  });
+}
+
+function createMetaParagraph(text, size = 18, color = '6B7280', after = 0) {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text,
+        size,
+        color,
+      }),
+    ],
+    spacing: {
+      after,
+    },
+  });
+}
+
+function createDividerParagraph() {
+  return new Paragraph({
+    border: {
+      bottom: {
+        color: 'D1D5DB',
+        space: 1,
+        style: 'single',
+        size: 4,
+      },
+    },
+    spacing: {
+      after: 200,
+    },
+  });
+}
+
+function createCodeParagraphs(code) {
+  const lines = getNumberedCodeLines(normalizeExportCode(code));
+  const digits = String(lines.length || 1).length;
+
+  return lines.map((line) => {
+    const numberLabel = String(line.number).padStart(digits, ' ');
+    return new Paragraph({
+      children: [
+        new TextRun({
+          text: `${numberLabel}  `,
+          font: 'Courier New',
+          size: 18,
+          color: '64748B',
+        }),
+        new TextRun({
+          text: line.text || ' ',
+          font: 'Courier New',
+          size: 20,
+        }),
+      ],
+      spacing: {
+        line: 280,
+      },
+    });
+  });
+}
 
 export async function exportToWord(code, algorithmName = 'algoritmo') {
   try {
+    const timestamp = formatExportTimestamp();
+    const siteUrl = getExportSiteUrl();
+
     const doc = new Document({
       sections: [
         {
           properties: {},
           children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: 'Editor Zoldyck - Código Fonte',
-                  bold: true,
-                  size: 32,
-                  color: '0066CC',
-                }),
-              ],
-              spacing: {
-                after: 200,
-              },
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Algoritmo: ${algorithmName}`,
-                  size: 20,
-                  color: '666666',
-                }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Data: ${new Date().toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}`,
-                  size: 20,
-                  color: '666666',
-                }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: 'Desenvolvido por: Daniel Souza - Sistemas de Informação FeMASS/2026.1',
-                  size: 18,
-                  color: '999999',
-                }),
-              ],
-              spacing: {
-                after: 400,
-              },
-            }),
-            new Paragraph({
-              border: {
-                bottom: {
-                  color: '0066CC',
-                  space: 1,
-                  style: 'single',
-                  size: 6,
-                },
-              },
-              spacing: {
-                after: 300,
-              },
-            }),
-            ...code.split('\n').map(
-              (line) =>
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: line || ' ',
-                      font: 'Courier New',
-                      size: 20,
-                    }),
-                  ],
-                  spacing: {
-                    line: 276,
-                  },
-                })
-            ),
+            createTitleParagraph('Editor Zoldyck - Código Fonte'),
+            createMetaParagraph(`Algoritmo: ${algorithmName}`, 18, '6B7280'),
+            createMetaParagraph(`Exportado em: ${timestamp}`, 16, '94A3B8'),
+            createMetaParagraph(siteUrl, 14, '94A3B8', 160),
+            createDividerParagraph(),
+            ...createCodeParagraphs(code),
+            createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, '94A3B8', 120),
           ],
         },
       ],
@@ -105,6 +114,8 @@ export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algor
     }
 
     const children = [];
+    const timestamp = formatExportTimestamp();
+    const siteUrl = getExportSiteUrl();
 
     algorithms.forEach((algorithm, index) => {
       const name = algorithm.name || `Algoritmo ${index + 1}`;
@@ -113,60 +124,14 @@ export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algor
         children.push(new Paragraph({ children: [new PageBreak()] }));
       }
 
-      children.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: 'Editor Zoldyck - Lista de Algoritmos',
-              bold: true,
-              size: 30,
-              color: '0066CC',
-            }),
-          ],
-          spacing: { after: 150 },
-        })
-      );
-      children.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Item ${index + 1} de ${algorithms.length}`,
-              size: 20,
-              color: '666666',
-            }),
-          ],
-          spacing: { after: 200 },
-        })
-      );
-
-      children.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `${index + 1}. ${name}`,
-              bold: true,
-              size: 26,
-            }),
-          ],
-          spacing: { after: 200 },
-        })
-      );
-
-      const lines = (algorithm.code || '').split('\n');
-      lines.forEach((line) => {
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: line || ' ',
-                font: 'Courier New',
-                size: 20,
-              }),
-            ],
-            spacing: { line: 276 },
-          })
-        );
-      });
+      children.push(createTitleParagraph('Editor Zoldyck - Lista de Algoritmos', '0066CC', 30));
+      children.push(createMetaParagraph(`Item ${index + 1} de ${algorithms.length}`, 18, '6B7280'));
+      children.push(createMetaParagraph(`${index + 1}. ${name}`, 24, '111827', 120));
+      children.push(createMetaParagraph(`Exportado em: ${timestamp}`, 14, '94A3B8'));
+      children.push(createMetaParagraph(siteUrl, 12, '94A3B8', 120));
+      children.push(createDividerParagraph());
+      children.push(...createCodeParagraphs(algorithm.code || ''));
+      children.push(createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, '94A3B8', 120));
     });
 
     const doc = new Document({

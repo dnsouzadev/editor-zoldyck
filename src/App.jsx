@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Code2, Music, Plus, Trash2, Sun, Moon, Github } from 'lucide-react';
+import { Code2, Music, FilePlus2, Trash2, Sun, Moon, Github } from 'lucide-react';
 import Editor from './components/Editor/Editor';
 import Console from './components/Console/Console';
 import Toolbar from './components/Toolbar/Toolbar';
@@ -35,6 +35,7 @@ inicio
    escreval("Olá, ", nome, "!")
    escreval("Bem-vindo ao Editor Zoldyck!")
 fimalgoritmo`;
+const EMPTY_CODE = '';
 
 function getStoredLanguage() {
   if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
@@ -50,12 +51,12 @@ function AppContent() {
   const [code, setCode] = useState(() => {
     try {
       const saved = localStorage.getItem('portugol-code');
-      return saved || DEFAULT_CODE;
+      return saved !== null ? saved : DEFAULT_CODE;
     } catch (e) {
       return DEFAULT_CODE;
     }
   });
-  
+
   const [isRunning, setIsRunning] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showExamplesModal, setShowExamplesModal] = useState(false);
@@ -460,7 +461,8 @@ function AppContent() {
       createdAt: new Date().toISOString(),
     };
     setAlgorithmList((prev) => [...prev, entry]);
-    setActiveAlgorithmId(entry.id);
+    setActiveAlgorithmId(null);
+    setCode(EMPTY_CODE);
     writeConsole(`Algoritmo "${name}" adicionado à lista (${algorithmList.length + 1}).`);
   }, [algorithmList.length, code, getAlgorithmNameFromCode, writeConsole]);
 
@@ -630,10 +632,10 @@ function AppContent() {
               type="button"
               onClick={handleAddCurrentAlgorithmToList}
               className="w-9 h-9 bg-foreground text-background flex items-center justify-center hover:bg-secondary hover:text-secondary-foreground transition-colors"
-              aria-label="Adicionar algoritmo"
-              title="Adicionar algoritmo"
+              aria-label="Salvar código atual e abrir novo algoritmo em branco"
+              title="Salvar código atual e abrir novo algoritmo em branco"
             >
-              <Plus className="w-4 h-4" />
+              <FilePlus2 className="w-4 h-4" />
             </button>
             <button
               type="button"
