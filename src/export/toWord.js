@@ -2,7 +2,7 @@ import { Document, Paragraph, TextRun, Packer, PageBreak } from 'docx';
 import { saveAs } from 'file-saver';
 import { formatExportTimestamp, getExportSiteUrl, getNumberedCodeLines, normalizeExportCode } from './formatters';
 
-function createTitleParagraph(text, color = '0066CC', size = 32) {
+function createTitleParagraph(text, color = '1F1F1F', size = 32) {
   return new Paragraph({
     children: [
       new TextRun({
@@ -18,7 +18,7 @@ function createTitleParagraph(text, color = '0066CC', size = 32) {
   });
 }
 
-function createMetaParagraph(text, size = 18, color = '6B7280', after = 0) {
+function createMetaParagraph(text, size = 18, color = '6E6E6E', after = 0) {
   return new Paragraph({
     children: [
       new TextRun({
@@ -37,7 +37,7 @@ function createDividerParagraph() {
   return new Paragraph({
     border: {
       bottom: {
-        color: 'D1D5DB',
+        color: 'D2D2D2',
         space: 1,
         style: 'single',
         size: 4,
@@ -61,7 +61,7 @@ function createCodeParagraphs(code) {
           text: `${numberLabel}  `,
           font: 'Courier New',
           size: 18,
-          color: '64748B',
+          color: '6E6E6E',
         }),
         new TextRun({
           text: line.text || ' ',
@@ -87,12 +87,12 @@ export async function exportToWord(code, algorithmName = 'algoritmo') {
           properties: {},
           children: [
             createTitleParagraph('Editor Zoldyck - Código Fonte'),
-            createMetaParagraph(`Algoritmo: ${algorithmName}`, 18, '6B7280'),
-            createMetaParagraph(`Exportado em: ${timestamp}`, 16, '94A3B8'),
-            createMetaParagraph(siteUrl, 14, '94A3B8', 160),
+            createMetaParagraph(`Algoritmo: ${algorithmName}`, 18, '6E6E6E'),
+            createMetaParagraph(`Exportado em: ${timestamp}`, 16, 'A3A3A3'),
+            createMetaParagraph(siteUrl, 14, 'A3A3A3', 160),
             createDividerParagraph(),
             ...createCodeParagraphs(code),
-            createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, '94A3B8', 120),
+            createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, 'A3A3A3', 120),
           ],
         },
       ],
@@ -124,14 +124,14 @@ export async function exportAlgorithmsToWord(algorithms, fileName = 'lista-algor
         children.push(new Paragraph({ children: [new PageBreak()] }));
       }
 
-      children.push(createTitleParagraph('Editor Zoldyck - Lista de Algoritmos', '0066CC', 30));
-      children.push(createMetaParagraph(`Item ${index + 1} de ${algorithms.length}`, 18, '6B7280'));
-      children.push(createMetaParagraph(`${index + 1}. ${name}`, 24, '111827', 120));
-      children.push(createMetaParagraph(`Exportado em: ${timestamp}`, 14, '94A3B8'));
-      children.push(createMetaParagraph(siteUrl, 12, '94A3B8', 120));
+      children.push(createTitleParagraph('Editor Zoldyck - Lista de Algoritmos', '1F1F1F', 30));
+      children.push(createMetaParagraph(`Item ${index + 1} de ${algorithms.length}`, 18, '6E6E6E'));
+      children.push(createMetaParagraph(`${index + 1}. ${name}`, 24, '202020', 120));
+      children.push(createMetaParagraph(`Exportado em: ${timestamp}`, 14, 'A3A3A3'));
+      children.push(createMetaParagraph(siteUrl, 12, 'A3A3A3', 120));
       children.push(createDividerParagraph());
       children.push(...createCodeParagraphs(algorithm.code || ''));
-      children.push(createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, '94A3B8', 120));
+      children.push(createMetaParagraph(`Exportado em ${timestamp} · ${siteUrl}`, 12, 'A3A3A3', 120));
     });
 
     const doc = new Document({

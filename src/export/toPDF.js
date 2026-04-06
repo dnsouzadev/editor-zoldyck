@@ -26,17 +26,17 @@ function createPdfLayout(pdf) {
 }
 
 function drawHeader(pdf, layout, title, subtitle, timestamp, siteUrl) {
-  pdf.setDrawColor(0, 102, 204);
-  pdf.setFillColor(248, 250, 252);
+  pdf.setDrawColor(110, 110, 110);
+  pdf.setFillColor(248, 248, 248);
   pdf.roundedRect(layout.marginX, layout.headerTop, layout.pageWidth - layout.marginX * 2, layout.headerHeight, 2, 2, 'FD');
 
   pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(0, 102, 204);
+  pdf.setTextColor(24, 24, 24);
   pdf.setFontSize(14);
   pdf.text(title, layout.marginX + 4, layout.headerTop + 6);
 
   pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(90, 98, 111);
+  pdf.setTextColor(95, 95, 95);
   pdf.setFontSize(8.5);
   pdf.text(subtitle, layout.marginX + 4, layout.headerTop + 11);
 
@@ -44,15 +44,15 @@ function drawHeader(pdf, layout, title, subtitle, timestamp, siteUrl) {
   pdf.text(`Exportado em ${timestamp}`, layout.pageWidth - layout.marginX - 4, layout.headerTop + 6, { align: 'right' });
   pdf.text(siteUrl, layout.pageWidth - layout.marginX - 4, layout.headerTop + 11, { align: 'right' });
 
-  pdf.setDrawColor(215, 223, 233);
+  pdf.setDrawColor(214, 214, 214);
   pdf.line(layout.marginX, layout.contentTop - 2, layout.pageWidth - layout.marginX, layout.contentTop - 2);
 }
 
 function drawFooter(pdf, layout, timestamp, siteUrl) {
-  pdf.setDrawColor(215, 223, 233);
+  pdf.setDrawColor(214, 214, 214);
   pdf.line(layout.marginX, layout.pageHeight - layout.marginBottom - 2, layout.pageWidth - layout.marginX, layout.pageHeight - layout.marginBottom - 2);
   pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(120, 126, 140);
+  pdf.setTextColor(130, 130, 130);
   pdf.setFontSize(7);
   pdf.text(`${siteUrl} · ${timestamp}`, layout.pageWidth / 2, layout.pageHeight - 6, { align: 'center' });
 }
@@ -70,7 +70,7 @@ function drawNumberedCodePages(pdf, code, options) {
     drawHeader(pdf, layout, options.title, options.subtitle, options.timestamp, options.siteUrl);
     pdf.setFont('courier', 'normal');
     pdf.setFontSize(codeFontSize);
-    pdf.setTextColor(29, 32, 40);
+    pdf.setTextColor(32, 32, 32);
   };
 
   const ensureSpace = (currentY, requiredHeight) => {
@@ -95,9 +95,9 @@ function drawNumberedCodePages(pdf, code, options) {
 
     segments.forEach((segment, segmentIndex) => {
       if (segmentIndex === 0) {
-        pdf.setTextColor(116, 122, 135);
+        pdf.setTextColor(120, 120, 120);
         pdf.text(String(line.number).padStart(totalDigits, ' '), layout.marginX, y);
-        pdf.setTextColor(29, 32, 40);
+        pdf.setTextColor(32, 32, 32);
       } else {
         pdf.text(' '.repeat(totalDigits), layout.marginX, y);
       }
